@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Wikimaster Auto-Opener & History",
+  "version": "1.0",
+  "description": "Ajoute un bouton Ouvrir Tout sur les tirages et un historique trié des cartes obtenues.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://*.wikimaster.com/*",
+    "*://*.wiki-masters.com/*",
+    "*://wiki-masters.com/*",
+    "*://localhost/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.wikimaster.com/*", "*://*.wiki-masters.com/*", "*://wiki-masters.com/*", "*://localhost/*"],
+      "js": ["content_script.js"]
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+:root {
+  --bg-color: #0f172a;
+  --panel-bg: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  
+  /* Couleurs des raretés (à adapter) */
+  --mythic: #ef4444;
+  --legendary: #eab308;
+  --epic: #a855f7;
+  --rare: #3b82f6;
+  --uncommon: #10b981;
+  --common: #64748b;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 350px;
+  height: 500px;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  overflow-y: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent 50%);
+}
+
+header {
+  padding: 20px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 20px;
+  top: 25px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.stats-bar {
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.debug-logs {
+  background: #000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  height: 120px;
+}
+.logs-header {
+  font-size: 10px;
+  padding: 4px 10px;
+  background: #222;
+  color: #aaa;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.copy-logs {
+  background: transparent;
+  border: 1px solid #555;
+  color: #aaa;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 9px;
+  cursor: pointer;
+}
+.copy-logs:hover {
+  background: #444;
+  color: #fff;
+}
+.logs-content {
+  padding: 10px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 10px;
+  color: #0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.logs-content::-webkit-scrollbar { width: 4px; }
+.logs-content::-webkit-scrollbar-thumb { background: #333; }
+
+.card-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-list::-webkit-scrollbar {
+  width: 6px;
+}
+.card-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+.card-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 50px;
+  font-size: 14px;
+}
+
+/* Styles des éléments de la liste */
+.card-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.card-item:hover {
+  transform: translateX(5px);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.card-image {
+  width: 40px;
+  height: 56px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.3);
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.card-rarity {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Rarity specific styles */
+.rarity-mythic .card-rarity { color: var(--mythic); }
+.rarity-legendary .card-rarity { color: var(--legendary); }
+.rarity-epic .card-rarity { color: var(--epic); }
+.rarity-rare .card-rarity { color: var(--rare); }
+.rarity-uncommon .card-rarity { color: var(--uncommon); }
+.rarity-common .card-rarity { color: var(--common); }
+
+.rarity-mythic { border-left: 3px solid var(--mythic); }
+.rarity-legendary { border-left: 3px solid var(--legendary); }
+.rarity-epic { border-left: 3px solid var(--epic); }
+.rarity-rare { border-left: 3px solid var(--rare); }
+.rarity-uncommon { border-left: 3px solid var(--uncommon); }
+.rarity-common { border-left: 3px solid var(--common); }
