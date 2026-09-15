@@ -100,6 +100,11 @@ function renderLogs() {
   });
 }
 
+document.getElementById('toggle-debug-btn').addEventListener('click', () => {
+  const logsEl = document.getElementById('debug-logs');
+  logsEl.classList.toggle('hidden');
+});
+
 document.getElementById('copy-logs-btn').addEventListener('click', () => {
   chrome.storage.local.get({ debugLogs: [] }, (result) => {
     const text = result.debugLogs.map(l => `[${l.time}] ${l.msg}`).join('\n');
