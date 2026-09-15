@@ -34,10 +34,14 @@ function injectOpenAllButton() {
     color: #ffffffff;
     border-radius: 12px;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 48px;
   `;
 
   btn.onmouseover = () => {
@@ -92,7 +96,7 @@ async function openAllPacks() {
   if (btnOpenAll) {
     btnOpenAll.disabled = true;
     btnOpenAll.dataset.running = 'true';
-    btnOpenAll.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 0 auto;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" /></svg>`;
+    btnOpenAll.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: wikimaster-spin 1s linear infinite; transform-origin: center;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
   }
 
   logDebug("[START] Lancement de l'ouverture automatique.");
@@ -225,6 +229,14 @@ function observeCards() {
 
 // Initialisation
 function init() {
+  // Injecter les styles CSS pour l'animation s'ils ne sont pas déjà là
+  if (!document.getElementById('wikimaster-styles')) {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-styles';
+    style.innerHTML = `@keyframes wikimaster-spin { 100% { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+  }
+
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
   // On utilise un observer global pour s'assurer que le bouton reste présent et à jour.
   const observer = new MutationObserver(() => {
@@ -242,22 +254,22 @@ function init() {
       if (btn && btn.dataset.running !== 'true') {
         const counterSpan = document.querySelector('.card-frame .text-lg.font-bold span:first-child');
         if (counterSpan) {
-           const count = counterSpan.innerText.trim();
-           if (count === '0') {
-             if (btn.innerText !== 'Aucun paquet') {
-               btn.disabled = true;
-               btn.style.opacity = '0.4';
-               btn.style.cursor = 'not-allowed';
-               btn.innerText = 'Aucun paquet';
-             }
-           } else {
-             if (btn.innerText === 'Aucun paquet') {
-               btn.disabled = false;
-               btn.style.opacity = '1';
-               btn.style.cursor = 'pointer';
-               btn.innerText = 'Ouvrir Tout';
-             }
-           }
+          const count = counterSpan.innerText.trim();
+          if (count === '0') {
+            if (btn.innerText !== 'Aucun paquet') {
+              btn.disabled = true;
+              btn.style.opacity = '0.4';
+              btn.style.cursor = 'not-allowed';
+              btn.innerText = 'Aucun paquet';
+            }
+          } else {
+            if (btn.innerText === 'Aucun paquet') {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+              btn.innerText = 'Ouvrir Tout';
+            }
+          }
         }
       }
 
