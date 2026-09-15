@@ -31,7 +31,7 @@ function injectOpenAllButton() {
   btn.style.cssText = `
     padding: 12px 24px;
     background: #4cd68fff;
-    color: #efefefff;
+    color: #ffffffff;
     border-radius: 12px;
     font-size: 16px;
     font-weight: bold;
@@ -42,17 +42,15 @@ function injectOpenAllButton() {
 
   btn.onmouseover = () => {
     if (!btn.disabled) {
-      btn.style.background = 'rgba(50, 151, 75, 1)'; // Vert légèrement plus foncé
-      btn.style.color = '#d4d4d4';      // Blanc/Gris légèrement plus foncé
-      btn.style.transform = 'translateY(-2px)';
+      btn.style.background = '#3ca66fff';
+      btn.style.color = '#d2d2d2ff';
     }
   };
 
   btn.onmouseout = () => {
     if (!btn.disabled) {
-      btn.style.background = '#4cd68fff'; // Vert d'origine
-      btn.style.color = '#efefefff';    // Couleur de texte d'origine
-      btn.style.transform = 'translateY(0)';
+      btn.style.background = '#4cd68fff';
+      btn.style.color = '#ffffffff';
     }
   };
 
@@ -93,7 +91,8 @@ async function openAllPacks() {
   const btnOpenAll = document.getElementById('wikimaster-open-all-btn');
   if (btnOpenAll) {
     btnOpenAll.disabled = true;
-    btnOpenAll.innerText = 'Ouverture en cours...';
+    btnOpenAll.dataset.running = 'true';
+    btnOpenAll.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 0 auto;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite" /></svg>`;
   }
 
   logDebug("[START] Lancement de l'ouverture automatique.");
@@ -162,6 +161,7 @@ async function openAllPacks() {
   logDebug("[END] Fin du script automatique.");
   if (btnOpenAll) {
     btnOpenAll.disabled = false;
+    delete btnOpenAll.dataset.running;
     btnOpenAll.innerText = 'Ouvrir Tout';
   }
 }
@@ -239,25 +239,25 @@ function init() {
       }
 
       // Griser le bouton si le compteur est à 0 et que le script n'est pas en cours
-      if (btn && btn.innerText !== 'Ouverture en cours...') {
+      if (btn && btn.dataset.running !== 'true') {
         const counterSpan = document.querySelector('.card-frame .text-lg.font-bold span:first-child');
         if (counterSpan) {
-          const count = counterSpan.innerText.trim();
-          if (count === '0') {
-            if (btn.innerText !== 'Aucun paquet') {
-              btn.disabled = true;
-              btn.style.opacity = '0.4';
-              btn.style.cursor = 'not-allowed';
-              btn.innerText = 'Aucun paquet';
-            }
-          } else {
-            if (btn.innerText === 'Aucun paquet') {
-              btn.disabled = false;
-              btn.style.opacity = '1';
-              btn.style.cursor = 'pointer';
-              btn.innerText = 'Ouvrir Tout';
-            }
-          }
+           const count = counterSpan.innerText.trim();
+           if (count === '0') {
+             if (btn.innerText !== 'Aucun paquet') {
+               btn.disabled = true;
+               btn.style.opacity = '0.4';
+               btn.style.cursor = 'not-allowed';
+               btn.innerText = 'Aucun paquet';
+             }
+           } else {
+             if (btn.innerText === 'Aucun paquet') {
+               btn.disabled = false;
+               btn.style.opacity = '1';
+               btn.style.cursor = 'pointer';
+               btn.innerText = 'Ouvrir Tout';
+             }
+           }
         }
       }
 
