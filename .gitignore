@@ -1,0 +1,25 @@
+# Dev
+
+/work/
+
+# Key
+
+.env
+.venv
+
+# OS files
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and Editors
+
+.vscode/
+*.tmp
+*.old
+*.bak
