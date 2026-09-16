@@ -7,8 +7,7 @@
 - **Auto-Opener ("Ouvrir Tout")**: Adds a smart button on the pack opening page (`/pulls`). A single click automatically opens all your packs in succession, saving you from clicking manually dozens of times.
 - **Auto-Claim Achievements ("Tout réclamer")**: Adds a button on the achievements page (`/achievements`) that lets you claim all your unlocked achievements at once.
 - **Smart Polling & Anti-Spam**: The script dynamically detects when elements appear on the screen (no fixed timeouts) for maximum execution speed. It also includes a safety pause (1.5s) after each pack to bypass the game's "Opening too fast" rate-limit error.
-- **Pull History**: Logs and lists your recently pulled cards directly in the extension's interface. Colors are adapted to the card's rarity (Common, Rare, Epic, Legendary, etc.).
-- **Modern Interface**: A sleek, fluid, and minimalist Dark Mode popup design.
+- **Integrated Logs**: Debug logs are integrated seamlessly into the game's settings page (`/settings`).
 - **Debugging Console**: Integrated real-time log panel, hidden by default but toggleable with a single click, featuring a button to copy the entire debug output.
 
 ## 🛠 Installation
@@ -27,7 +26,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 1. Go to the pack opening page on WikiMaster (`/pulls`).
 2. A large green **"Ouvrir Tout"** (Open All) button will appear below your packs if you have at least one.
 3. Click it and watch the script do the work! The button will display a loading animation while the extension handles everything.
-4. Click the extension icon in your browser toolbar to view your pull history or access options.
+4. To check the logs, go to the settings page (`/settings`).
 
 ## 👨‍💻 Tech Stack
 

@@ -242,7 +242,7 @@ function injectClaimAllButton() {
   const btn = document.createElement('button');
   btn.id = 'wikimaster-claim-all-btn';
   btn.innerText = 'Tout réclamer';
-  
+
   // Style similaire au bouton "Ouvrir tout"
   btn.style.cssText = `
     padding: 12px 24px;
@@ -296,7 +296,7 @@ async function claimAllAchievements() {
 
   while (true) {
     // Récupérer tous les boutons 'Réclamer' actifs
-    const buttons = Array.from(document.querySelectorAll('button')).filter(b => 
+    const buttons = Array.from(document.querySelectorAll('button')).filter(b =>
       b.innerText.trim() === 'Réclamer' && !b.disabled
     );
 
@@ -307,7 +307,7 @@ async function claimAllAchievements() {
 
     logDebug(`[ACTION] Clic sur Réclamer... (Reste: ${buttons.length})`);
     buttons[0].click();
-    
+
     // Attendre 600ms pour laisser le temps à la requête de s'exécuter et au bouton de se désactiver
     await sleep(600);
   }
@@ -317,6 +317,136 @@ async function claimAllAchievements() {
     delete btn.dataset.running;
     btn.innerText = 'Tout réclamer';
   }
+}
+
+// ---------------------------------------------------------
+// LOGIQUE POUR LA PAGE PARAMÈTRES (/settings)
+// ---------------------------------------------------------
+
+function injectLogsPanel() {
+  if (document.getElementById('wikimaster-logs-wrapper')) return;
+
+  const maxWContainer = document.querySelector('.max-w-lg');
+  if (!maxWContainer || !maxWContainer.querySelector('h1')?.innerText.includes('Paramètres')) return;
+
+  // Injecter les styles spécifiques pour le layout
+  if (!document.getElementById('wikimaster-logs-style')) {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-logs-style';
+    style.innerHTML = `
+      #wikimaster-logs-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        width: 100%;
+        align-items: stretch;
+      }
+      #wikimaster-logs-container {
+        position: relative;
+        width: 464px;
+        height: 512px;
+        min-height: 400px;
+        margin-bottom: 24px;
+      }
+      @media (min-width: 1024px) {
+        #wikimaster-logs-wrapper {
+          flex-direction: row;
+          padding-right: 24px;
+          padding-top: 48px;
+          padding-bottom: 48px;
+        }
+        #wikimaster-logs-container {
+          min-height: 0;
+          margin-bottom: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'wikimaster-logs-wrapper';
+
+  maxWContainer.parentElement.insertBefore(wrapper, maxWContainer);
+  wrapper.appendChild(maxWContainer);
+
+  const panelContainer = document.createElement('div');
+  panelContainer.id = 'wikimaster-logs-container';
+
+  const panel = document.createElement('div');
+  panel.id = 'wikimaster-logs-panel';
+  panel.className = 'card-frame p-5 animate-fade-in-up';
+  panel.style.position = 'absolute';
+  panel.style.top = '0';
+  panel.style.bottom = '0';
+  panel.style.left = '0';
+  panel.style.right = '0';
+  panel.style.overflowY = 'auto';
+
+  panel.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60" style="font-family: var(--font-heading);">Console Wikimaster</h3>
+      <div class="flex gap-2">
+        <button id="wikimaster-copy-logs" title="Copier les logs" class="p-1.5 rounded bg-[var(--color-surface-light)] hover:bg-[var(--color-surface)] text-[var(--color-foreground)] transition-colors border border-[var(--color-border)] cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+        <button id="wikimaster-clear-logs" title="Effacer les logs" class="p-1.5 rounded bg-[var(--color-surface-light)] hover:bg-red-500/20 text-[var(--color-foreground)] hover:text-red-400 transition-colors border border-[var(--color-border)] hover:border-red-500/30 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div>
+    <div id="wikimaster-logs-content" class="text-xs font-mono space-y-2" style="color: var(--color-foreground); opacity: 0.8;"></div>
+  `;
+
+  panelContainer.appendChild(panel);
+  wrapper.appendChild(panelContainer);
+
+  const renderLogs = () => {
+    const content = document.getElementById('wikimaster-logs-content');
+    if (!content) return;
+
+    // Vérification de sécurité : si le contexte de l'extension est invalidé (rechargement)
+    if (!chrome.runtime?.id) {
+      clearInterval(Number(panel.dataset.intervalId));
+      content.innerHTML = "<div style='color: #ef4444; font-style: italic; padding: 10px;'>L'extension a été mise à jour. Veuillez actualiser la page (F5).</div>";
+      return;
+    }
+
+    try {
+      chrome.storage.local.get({ debugLogs: [] }, (result) => {
+        const logs = result.debugLogs;
+        if (logs.length === 0) {
+          content.innerHTML = '<div style="opacity: 0.5; font-style: italic;">Aucun log récent...</div>';
+        } else {
+          content.innerHTML = logs.map(l => `<div style="padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#a855f7;font-weight:bold;">[${l.time}]</span> ${l.msg}</div>`).join('');
+        }
+      });
+    } catch (e) {
+      clearInterval(Number(panel.dataset.intervalId));
+      content.innerHTML = "<div style='color: #ef4444; font-style: italic; padding: 10px;'>L'extension a été mise à jour. Veuillez actualiser la page (F5).</div>";
+    }
+  };
+
+  renderLogs();
+  panel.dataset.intervalId = setInterval(renderLogs, 1000);
+
+  document.getElementById('wikimaster-copy-logs').addEventListener('click', () => {
+    chrome.storage.local.get({ debugLogs: [] }, (result) => {
+      const text = result.debugLogs.map(l => `[${l.time}] ${l.msg}`).join('\\n');
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('wikimaster-copy-logs');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => btn.innerHTML = originalHTML, 2000);
+      });
+    });
+  });
+
+  document.getElementById('wikimaster-clear-logs').addEventListener('click', () => {
+    chrome.storage.local.set({ debugLogs: [] }, () => {
+      renderLogs();
+    });
+  });
 }
 
 // Initialisation
@@ -377,7 +507,7 @@ function init() {
       }
 
       if (claimBtn && claimBtn.dataset.running !== 'true') {
-        const claimableButtons = Array.from(document.querySelectorAll('button')).filter(b => 
+        const claimableButtons = Array.from(document.querySelectorAll('button')).filter(b =>
           b.innerText.trim() === 'Réclamer' && !b.disabled
         );
 
@@ -403,6 +533,23 @@ function init() {
     } else {
       const claimBtn = document.getElementById('wikimaster-claim-all-btn');
       if (claimBtn) claimBtn.remove();
+    }
+
+    if (window.location.pathname.includes('/settings')) {
+      injectLogsPanel();
+    } else {
+      const wrapper = document.getElementById('wikimaster-logs-wrapper');
+      if (wrapper) {
+        const panel = document.getElementById('wikimaster-logs-panel');
+        if (panel && panel.dataset.intervalId) {
+          clearInterval(Number(panel.dataset.intervalId));
+        }
+        if (panel) panel.remove();
+
+        const maxW = wrapper.querySelector('.max-w-lg');
+        if (maxW) wrapper.parentElement.insertBefore(maxW, wrapper);
+        wrapper.remove();
+      }
     }
   });
 
