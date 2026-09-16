@@ -9,6 +9,7 @@
 - **Smart Polling & Anti-Spam**: The script dynamically detects when elements appear on the screen (no fixed timeouts) for maximum execution speed. It also includes a safety pause (1.5s) after each pack to bypass the game's "Opening too fast" rate-limit error.
 - **Integrated Logs**: Debug logs are integrated seamlessly into the game's settings page (`/settings`).
 - **Debugging Console**: Integrated real-time log panel, hidden by default but toggleable with a single click, featuring a button to copy the entire debug output.
+- **Volume Control**: Adds a volume slider in the settings page to precisely adjust the sound effects (pack opening) of the game.
 
 ## 🛠 Installation
 

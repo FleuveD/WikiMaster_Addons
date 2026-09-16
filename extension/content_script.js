@@ -324,38 +324,44 @@ async function claimAllAchievements() {
 // ---------------------------------------------------------
 
 function injectLogsPanel() {
-  if (document.getElementById('wikimaster-logs-wrapper')) return;
+  if (document.getElementById('wikimaster-logs-container')) return;
 
   const maxWContainer = document.querySelector('.max-w-lg');
   if (!maxWContainer || !maxWContainer.querySelector('h1')?.innerText.includes('Paramètres')) return;
+
+  // On ajoute une classe au <main> parent pour gérer le layout flex
+  // Cela évite de créer un wrapper DOM supplémentaire qui fait crasher React
+  const main = maxWContainer.parentElement;
+  main.classList.add('wikimaster-settings-layout');
 
   // Injecter les styles spécifiques pour le layout
   if (!document.getElementById('wikimaster-logs-style')) {
     const style = document.createElement('style');
     style.id = 'wikimaster-logs-style';
     style.innerHTML = `
-      #wikimaster-logs-wrapper {
-        display: flex;
-        flex-direction: column;
+      .wikimaster-settings-layout {
+        display: flex !important;
+        flex-wrap: wrap !important;
         gap: 24px;
-        width: 100%;
-        align-items: stretch;
+        align-items: flex-start !important;
+        width: 100% !important;
       }
       #wikimaster-logs-container {
         position: relative;
-        width: 464px;
-        height: 512px;
+        width: 100%;
         min-height: 400px;
         margin-bottom: 24px;
+        margin-right: 24px;
+        margin-top: 24px;
       }
       @media (min-width: 1024px) {
-        #wikimaster-logs-wrapper {
-          flex-direction: row;
+        .wikimaster-settings-layout {
+          flex-wrap: nowrap !important;
           padding-right: 24px;
-          padding-top: 48px;
-          padding-bottom: 48px;
         }
         #wikimaster-logs-container {
+          width: 464px;
+          height: 512px;
           min-height: 0;
           margin-bottom: 0;
         }
@@ -363,12 +369,6 @@ function injectLogsPanel() {
     `;
     document.head.appendChild(style);
   }
-
-  const wrapper = document.createElement('div');
-  wrapper.id = 'wikimaster-logs-wrapper';
-
-  maxWContainer.parentElement.insertBefore(wrapper, maxWContainer);
-  wrapper.appendChild(maxWContainer);
 
   const panelContainer = document.createElement('div');
   panelContainer.id = 'wikimaster-logs-container';
@@ -399,7 +399,7 @@ function injectLogsPanel() {
   `;
 
   panelContainer.appendChild(panel);
-  wrapper.appendChild(panelContainer);
+  main.appendChild(panelContainer);
 
   const renderLogs = () => {
     const content = document.getElementById('wikimaster-logs-content');
@@ -449,6 +449,59 @@ function injectLogsPanel() {
   });
 }
 
+function injectVolumeSlider() {
+  if (document.getElementById('wikimaster-volume-slider-container')) return;
+
+  const h3s = Array.from(document.querySelectorAll('h3'));
+  const sonH3 = h3s.find(h => h.innerText.trim() === 'Son');
+  if (!sonH3) return;
+
+  const container = sonH3.parentElement;
+
+  const sliderContainer = document.createElement('div');
+  sliderContainer.id = 'wikimaster-volume-slider-container';
+  sliderContainer.className = 'mt-5 pt-4 border-t border-[var(--color-border)] animate-fade-in-up';
+
+  sliderContainer.innerHTML = `
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex flex-col">
+        <span class="text-sm text-[var(--color-foreground)]">Volume des effets</span>
+        <span class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste le volume d'ouverture des paquets</span>
+      </div>
+      <span id="wikimaster-volume-value" class="text-sm font-bold" style="color: #34d399;">100%</span>
+    </div>
+    <input type="range" id="wikimaster-volume-slider" min="0" max="100" value="100" class="w-full cursor-pointer" style="accent-color: #34d399;">
+  `;
+
+  if (!document.getElementById('wikimaster-volume-style')) {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-volume-style';
+    style.innerHTML = `
+      #wikimaster-volume-slider {
+        accent-color: #34d399 !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  container.appendChild(sliderContainer);
+
+  const slider = document.getElementById('wikimaster-volume-slider');
+  const valueDisplay = document.getElementById('wikimaster-volume-value');
+
+  chrome.storage.local.get({ volume: 100 }, (result) => {
+    slider.value = result.volume;
+    valueDisplay.innerText = result.volume + '%';
+  });
+
+  slider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    valueDisplay.innerText = val + '%';
+    window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: val / 100 } }));
+    chrome.storage.local.set({ volume: parseInt(val, 10) });
+  });
+}
+
 // Initialisation
 function init() {
   // Injecter les styles CSS pour l'animation s'ils ne sont pas déjà là
@@ -458,6 +511,13 @@ function init() {
     style.innerHTML = `@keyframes wikimaster-spin { 100% { transform: rotate(360deg); } }`;
     document.head.appendChild(style);
   }
+
+  // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
+  // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
+  // On envoie simplement la valeur sauvegardée initiale au hook :
+  chrome.storage.local.get({ volume: 100 }, (result) => {
+    window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
+  });
 
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
   // On utilise un observer global pour s'assurer que le bouton reste présent et à jour.
@@ -537,19 +597,16 @@ function init() {
 
     if (window.location.pathname.includes('/settings')) {
       injectLogsPanel();
+      injectVolumeSlider();
     } else {
-      const wrapper = document.getElementById('wikimaster-logs-wrapper');
-      if (wrapper) {
-        const panel = document.getElementById('wikimaster-logs-panel');
-        if (panel && panel.dataset.intervalId) {
-          clearInterval(Number(panel.dataset.intervalId));
-        }
-        if (panel) panel.remove();
-
-        const maxW = wrapper.querySelector('.max-w-lg');
-        if (maxW) wrapper.parentElement.insertBefore(maxW, wrapper);
-        wrapper.remove();
+      const panel = document.getElementById('wikimaster-logs-container');
+      if (panel) {
+        const p = document.getElementById('wikimaster-logs-panel');
+        if (p && p.dataset.intervalId) clearInterval(Number(p.dataset.intervalId));
+        panel.remove();
       }
+      const main = document.querySelector('.wikimaster-settings-layout');
+      if (main) main.classList.remove('wikimaster-settings-layout');
     }
   });
 

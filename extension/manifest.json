@@ -35,6 +35,19 @@
       "js": [
         "content_script.js"
       ]
+    },
+    {
+      "matches": [
+        "*://*.wikimaster.com/*",
+        "*://*.wiki-masters.com/*",
+        "*://wiki-masters.com/*",
+        "*://localhost/*"
+      ],
+      "js": [
+        "volume_hook.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ]
 }
