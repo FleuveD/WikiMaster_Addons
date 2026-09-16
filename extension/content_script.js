@@ -22,6 +22,26 @@ const CONFIG = {
   cardImageSelector: 'img'
 };
 
+// =========================================================================
+// ÉTAT GLOBAL & CACHE
+// =========================================================================
+let cachedHideMtx = false;
+let isHideMtxLoaded = false;
+
+if (chrome.runtime?.id) {
+  chrome.storage.local.get({ hideMtx: false }, (res) => {
+    cachedHideMtx = res.hideMtx;
+    isHideMtxLoaded = true;
+  });
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.hideMtx) {
+      cachedHideMtx = changes.hideMtx.newValue;
+      if (cachedHideMtx) removeMicroTransactions();
+    }
+  });
+}
+
 function injectOpenAllButton() {
   if (document.getElementById('wikimaster-open-all-btn')) return;
 
@@ -192,6 +212,11 @@ function saveCardToHistory(card) {
 // Observer le DOM pour détecter l'apparition de nouvelles cartes
 function observeCards() {
   const observer = new MutationObserver((mutations) => {
+    if (!chrome.runtime?.id) {
+      observer.disconnect();
+      return;
+    }
+
     for (let mutation of mutations) {
       for (let node of mutation.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE) {
@@ -352,7 +377,7 @@ function injectLogsPanel() {
         min-height: 400px;
         margin-bottom: 24px;
         margin-right: 24px;
-        margin-top: 24px;
+        margin-top: 84px;
       }
       @media (min-width: 1024px) {
         .wikimaster-settings-layout {
@@ -372,16 +397,31 @@ function injectLogsPanel() {
 
   const panelContainer = document.createElement('div');
   panelContainer.id = 'wikimaster-logs-container';
+  panelContainer.className = 'flex flex-col gap-6'; // Espace entre les options et la console
+
+  // Panneau d'options (MTX)
+  const optionsPanel = document.createElement('div');
+  optionsPanel.id = 'wikimaster-options-panel';
+  optionsPanel.className = 'card-frame p-5 animate-fade-in-up';
+  optionsPanel.innerHTML = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Options WikiMaster Addons</h3>
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Masquer les micro-transactions</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Cache l'encart WikiMasters PRO et autres offres</p>
+      </div>
+      <button id="wikimaster-toggle-mtx" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+  `;
 
   const panel = document.createElement('div');
   panel.id = 'wikimaster-logs-panel';
-  panel.className = 'card-frame p-5 animate-fade-in-up';
-  panel.style.position = 'absolute';
-  panel.style.top = '0';
-  panel.style.bottom = '0';
-  panel.style.left = '0';
-  panel.style.right = '0';
-  panel.style.overflowY = 'auto';
+  panel.className = 'card-frame p-5 animate-fade-in-up flex-1';
+  panel.style.display = 'flex';
+  panel.style.flexDirection = 'column';
+  panel.style.overflow = 'hidden';
 
   panel.innerHTML = `
     <div class="flex items-center justify-between mb-4">
@@ -395,9 +435,10 @@ function injectLogsPanel() {
         </button>
       </div>
     </div>
-    <div id="wikimaster-logs-content" class="text-xs font-mono space-y-2" style="color: var(--color-foreground); opacity: 0.8;"></div>
+    <div id="wikimaster-logs-content" class="text-xs font-mono space-y-2 flex-1 overflow-y-auto pr-2" style="color: var(--color-foreground); opacity: 0.8;"></div>
   `;
 
+  panelContainer.appendChild(optionsPanel);
   panelContainer.appendChild(panel);
   main.appendChild(panelContainer);
 
@@ -447,6 +488,130 @@ function injectLogsPanel() {
       renderLogs();
     });
   });
+
+  // Logique pour le toggle MTX
+  const mtxBtn = document.getElementById('wikimaster-toggle-mtx');
+  const mtxSpan = mtxBtn.querySelector('span');
+
+  const updateMtxToggle = (isActive) => {
+    mtxBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      mtxBtn.style.background = '#34d399';
+      mtxSpan.style.transform = 'translateX(24px)';
+    } else {
+      mtxBtn.style.background = 'var(--color-border)';
+      mtxSpan.style.transform = 'translateX(0px)';
+    }
+  };
+
+  if (!chrome.runtime?.id) return;
+
+  chrome.storage.local.get({ hideMtx: false }, (res) => {
+    updateMtxToggle(res.hideMtx);
+  });
+
+  mtxBtn.addEventListener('click', () => {
+    const currentState = mtxBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateMtxToggle(newState);
+    chrome.storage.local.set({ hideMtx: newState });
+
+    if (newState) {
+      removeMicroTransactions();
+    } else {
+      window.location.reload(); // Recharger la page pour restaurer les éléments cachés
+    }
+  });
+}
+
+let mtxTimeout = null;
+
+function removeMicroTransactions() {
+  if (!isHideMtxLoaded || !cachedHideMtx) return;
+
+  // Debounce pour ne pas surcharger le navigateur à chaque mutation React
+  if (mtxTimeout) return;
+  mtxTimeout = setTimeout(() => {
+    mtxTimeout = null;
+    executeMtxRemoval();
+  }, 100);
+}
+
+function executeMtxRemoval() {
+  const mtxKeywords = [
+    'wikimasters pro',
+    "s'abonner",
+    "s’abonner",
+    'acheter des wikibidous',
+    'rechargez',
+    'stripe'
+  ];
+  
+  // Détecte les prix en argent réel (ex: 1,99 $, 4.99€, 9,99 $ CAD)
+  const priceRegex = /\d+[.,]\d+\s*(?:\$|€|cad|usd)/i;
+
+  // On cherche dans tous les conteneurs potentiels
+  const containers = Array.from(document.querySelectorAll('div, section, article, aside, li, button, a'));
+  const majorMtxNodes = [];
+  const smallMtxNodes = [];
+  
+  for (let el of containers) {
+    if (el.id === 'wikimaster-options-panel' || el.closest('#wikimaster-options-panel')) continue;
+    
+    const text = el.textContent ? el.textContent.toLowerCase() : '';
+    // On ignore les conteneurs géants (ex: la page entière) pour éviter de tout cacher
+    if (!text || text.length > 2500) continue; 
+    
+    // Détection d'une boîte MTX majeure (Titre + Info de paiement ou mots-clés forts)
+    const hasTitle = text.includes('wikimasters pro') || text.includes('acheter des wikibidous');
+    const hasPrice = priceRegex.test(text) || text.includes('stripe') || text.includes("s'abonner") || text.includes("s’abonner") || text.includes('non-remboursables');
+    
+    if (hasTitle && hasPrice) {
+      majorMtxNodes.push(el);
+    } else {
+      // Détection d'un petit élément MTX isolé (ex: bouton "Rechargez 10 paquets - 1,99 $")
+      if (text.trim().length < 150 && (priceRegex.test(text) || text.includes('rechargez '))) {
+        smallMtxNodes.push(el);
+      }
+    }
+  }
+
+  // Pour les GROSSES boîtes (PRO, Boutique), on cherche le conteneur le PLUS PROFOND qui contient TOUT (Titre + Prix)
+  // Ainsi, le script trouve la boîte exacte de l'offre et ne remonte JAMAIS jusqu'à la page entière !
+  const deepestMajorNodes = majorMtxNodes.filter(el => {
+    return !majorMtxNodes.some(other => other !== el && el.contains(other));
+  });
+
+  for (let el of deepestMajorNodes) {
+    // On remonte pour trouver la "coquille" de la carte (qui contient les bordures et les ombres)
+    let toHide = el.closest('section') || 
+                 el.closest('.card-frame') || 
+                 el.closest('[class*="shadow"]') || 
+                 el.closest('[class*="border"]') || 
+                 el;
+                 
+    // SÉCURITÉ ANTI-ÉCRAN NOIR : on s'assure de ne pas cacher la page entière
+    if (toHide.tagName.toLowerCase() === 'main' || toHide.tagName.toLowerCase() === 'body' || (toHide.textContent && toHide.textContent.length > 2500)) {
+      toHide = el;
+    }
+
+    if (toHide && toHide.style.display !== 'none') {
+      toHide.style.display = 'none';
+    }
+  }
+
+  // Pour les PETITS boutons isolés, on garde le conteneur le PLUS PROFOND
+  // Cela permet de ne cacher que le bouton sans cacher son parent
+  const deepestSmallNodes = smallMtxNodes.filter(el => {
+    return !smallMtxNodes.some(other => other !== el && el.contains(other));
+  });
+
+  for (let el of deepestSmallNodes) {
+    const toHide = el.closest('button') || el.closest('a') || el.closest('li') || el;
+    if (toHide && toHide.style.display !== 'none') {
+      toHide.style.display = 'none';
+    }
+  }
 }
 
 function injectVolumeSlider() {
@@ -489,6 +654,8 @@ function injectVolumeSlider() {
   const slider = document.getElementById('wikimaster-volume-slider');
   const valueDisplay = document.getElementById('wikimaster-volume-value');
 
+  if (!chrome.runtime?.id) return;
+
   chrome.storage.local.get({ volume: 100 }, (result) => {
     slider.value = result.volume;
     valueDisplay.innerText = result.volume + '%';
@@ -522,6 +689,11 @@ function init() {
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
   // On utilise un observer global pour s'assurer que le bouton reste présent et à jour.
   const observer = new MutationObserver(() => {
+    if (!chrome.runtime?.id) {
+      observer.disconnect();
+      return;
+    }
+
     if (window.location.pathname.includes('/pulls')) {
       let btn = document.getElementById('wikimaster-open-all-btn');
       if (!btn) {
@@ -608,6 +780,9 @@ function init() {
       const main = document.querySelector('.wikimaster-settings-layout');
       if (main) main.classList.remove('wikimaster-settings-layout');
     }
+
+    // Appliquer le filtre MTX en continu
+    removeMicroTransactions();
   });
 
   observer.observe(document.body, { subtree: true, childList: true });

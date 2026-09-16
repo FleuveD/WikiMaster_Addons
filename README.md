@@ -10,6 +10,7 @@
 - **Integrated Logs**: Debug logs are integrated seamlessly into the game's settings page (`/settings`).
 - **Debugging Console**: Integrated real-time log panel, hidden by default but toggleable with a single click, featuring a button to copy the entire debug output.
 - **Volume Control**: Adds a volume slider in the settings page to precisely adjust the sound effects (pack opening) of the game.
+- **Micro-transaction Blocker**: Toggle switch available in settings to automatically hide intrusive "WikiMasters PRO" banners and premium offers.
 
 ## 🛠 Installation
 
