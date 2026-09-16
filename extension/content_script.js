@@ -404,7 +404,7 @@ function injectLogsPanel() {
   optionsPanel.id = 'wikimaster-options-panel';
   optionsPanel.className = 'card-frame p-5 animate-fade-in-up';
   optionsPanel.innerHTML = `
-    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Options WikiMaster Addons</h3>
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Bloqueur</h3>
     <div class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Masquer les micro-transactions</p>
@@ -546,7 +546,7 @@ function executeMtxRemoval() {
     'rechargez',
     'stripe'
   ];
-  
+
   // Détecte les prix en argent réel (ex: 1,99 $, 4.99€, 9,99 $ CAD)
   const priceRegex = /\d+[.,]\d+\s*(?:\$|€|cad|usd)/i;
 
@@ -554,18 +554,18 @@ function executeMtxRemoval() {
   const containers = Array.from(document.querySelectorAll('div, section, article, aside, li, button, a'));
   const majorMtxNodes = [];
   const smallMtxNodes = [];
-  
+
   for (let el of containers) {
     if (el.id === 'wikimaster-options-panel' || el.closest('#wikimaster-options-panel')) continue;
-    
+
     const text = el.textContent ? el.textContent.toLowerCase() : '';
     // On ignore les conteneurs géants (ex: la page entière) pour éviter de tout cacher
-    if (!text || text.length > 2500) continue; 
-    
+    if (!text || text.length > 2500) continue;
+
     // Détection d'une boîte MTX majeure (Titre + Info de paiement ou mots-clés forts)
     const hasTitle = text.includes('wikimasters pro') || text.includes('acheter des wikibidous');
     const hasPrice = priceRegex.test(text) || text.includes('stripe') || text.includes("s'abonner") || text.includes("s’abonner") || text.includes('non-remboursables');
-    
+
     if (hasTitle && hasPrice) {
       majorMtxNodes.push(el);
     } else {
@@ -584,12 +584,12 @@ function executeMtxRemoval() {
 
   for (let el of deepestMajorNodes) {
     // On remonte pour trouver la "coquille" de la carte (qui contient les bordures et les ombres)
-    let toHide = el.closest('section') || 
-                 el.closest('.card-frame') || 
-                 el.closest('[class*="shadow"]') || 
-                 el.closest('[class*="border"]') || 
-                 el;
-                 
+    let toHide = el.closest('section') ||
+      el.closest('.card-frame') ||
+      el.closest('[class*="shadow"]') ||
+      el.closest('[class*="border"]') ||
+      el;
+
     // SÉCURITÉ ANTI-ÉCRAN NOIR : on s'assure de ne pas cacher la page entière
     if (toHide.tagName.toLowerCase() === 'main' || toHide.tagName.toLowerCase() === 'body' || (toHide.textContent && toHide.textContent.length > 2500)) {
       toHide = el;

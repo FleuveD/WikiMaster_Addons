@@ -2,15 +2,14 @@
 
 **WikiMaster Addons** is a browser extension that enhances your gaming experience on [Wiki-Masters](https://www.wiki-masters.com). It provides automated features to save you time and helps you track your stats.
 
-## 🚀 Features
+## ✨ Fonctionnalités (Features)
 
-- **Auto-Opener ("Ouvrir Tout")**: Adds a smart button on the pack opening page (`/pulls`). A single click automatically opens all your packs in succession, saving you from clicking manually dozens of times.
-- **Auto-Claim Achievements ("Tout réclamer")**: Adds a button on the achievements page (`/achievements`) that lets you claim all your unlocked achievements at once.
-- **Smart Polling & Anti-Spam**: The script dynamically detects when elements appear on the screen (no fixed timeouts) for maximum execution speed. It also includes a safety pause (1.5s) after each pack to bypass the game's "Opening too fast" rate-limit error.
-- **Integrated Logs**: Debug logs are integrated seamlessly into the game's settings page (`/settings`).
-- **Debugging Console**: Integrated real-time log panel, hidden by default but toggleable with a single click, featuring a button to copy the entire debug output.
-- **Volume Control**: Adds a volume slider in the settings page to precisely adjust the sound effects (pack opening) of the game.
-- **Micro-transaction Blocker**: Toggle switch available in settings to automatically hide intrusive "WikiMasters PRO" banners and premium offers.
+- **Auto-Opener ("Ouvrir Tout")** : Ajoute un bouton intelligent sur la page d'ouverture des paquets (`/pulls`). Un seul clic permet d'ouvrir tous vos paquets à la suite, vous évitant de cliquer manuellement des dizaines de fois.
+- **Auto-Claim Achievements ("Tout réclamer")** : Ajoute un bouton sur la page des succès (`/achievements`) pour réclamer toutes vos récompenses débloquées en une seule action.
+- **Bloqueur de Micro-transactions (MTX Blocker)** : Désintègre automatiquement les offres "WikiMasters PRO", les boutiques de "WikiBidous" et les boutons d'achat en argent réel de l'interface du jeu. L'algorithme scanne et nettoie la page en temps réel. Activable depuis les paramètres.
+- **Contrôle du Volume (Volume Control)** : Ajoute un curseur de volume exclusif dans la page des paramètres (`/settings`) pour baisser ou couper les effets sonores assourdissants lors de l'ouverture des paquets.
+- **Smart Polling & Anti-Spam** : Le script détecte dynamiquement les éléments à l'écran et intègre des pauses de sécurité intelligentes (ex: 1.5s entre chaque paquet) pour éviter de déclencher l'erreur "Opening too fast" du jeu.
+- **Console de Débogage & Options Intégrées** : Ajoute un panneau de contrôle (UI) magnifique et natif dans la page des paramètres du jeu (`/settings`). Permet de gérer le bloqueur MTX et d'afficher, copier ou effacer les logs de l'extension en direct.
 
 ## 🛠 Installation
 
@@ -23,12 +22,14 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 5. Select the folder containing the extension files (`WikimasterAddons/extension/`).
 6. You're all set! The extension icon will appear in your toolbar.
 
-## 🎮 Usage
+## 🎮 Utilisation
 
-1. Go to the pack opening page on WikiMaster (`/pulls`).
-2. A large green **"Ouvrir Tout"** (Open All) button will appear below your packs if you have at least one.
-3. Click it and watch the script do the work! The button will display a loading animation while the extension handles everything.
-4. To check the logs, go to the settings page (`/settings`).
+1. **Ouverture de paquets** : Allez sur la page `/pulls`. Un grand bouton vert **"Ouvrir Tout"** apparaîtra sous vos paquets. Cliquez dessus et laissez la magie opérer !
+2. **Récupération des succès** : Allez sur la page `/achievements` pour voir le bouton **"Tout réclamer"**.
+3. **Paramètres et Options** : Allez sur la page `/settings` pour :
+   - Régler le volume des effets sonores du jeu avec précision.
+   - Activer ou désactiver le **Bloqueur de Micro-transactions** en un clic.
+   - Consulter la **Console Wikimaster** (logs en direct).
 
 ## 👨‍💻 Tech Stack
 
