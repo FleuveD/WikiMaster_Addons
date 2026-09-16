@@ -8,13 +8,13 @@
 - **Auto-Claim Achievements ("Tout réclamer")**: Adds a button on the achievements page (`/achievements`) that lets you claim all your unlocked achievements in a single action.
 - **Micro-transaction Blocker (MTX Blocker)**: Automatically removes intrusive "WikiMasters PRO" offers, "WikiBidous" shops, and real-money purchase buttons from the game's interface. The algorithm scans and cleans the page in real time. Can be toggled in the settings.
   
-  ![MTX Blocker](README_IMG2.png)
+  <img src="README_IMG2.png" alt="MTX Blocker" width="50%">
   
 - **Volume Control**: Adds an exclusive volume slider in the settings page (`/settings`) to precisely lower or mute the deafening sound effects during pack openings.
 - **Smart Polling & Anti-Spam**: The script dynamically detects on-screen elements and integrates smart safety pauses (e.g., 1.5s between packs) to avoid triggering the game's "Opening too fast" rate-limit error.
 - **Debugging Console & Integrated Options**: Injects a beautiful, native-looking control panel into the game's settings page (`/settings`). Allows you to manage the MTX blocker and view, copy, or clear the extension's live logs.
 
-  ![Debugging Console](README_IMG1.png)
+  <img src="README_IMG1.png" alt="Debugging Console" width="50%">
 
 ## Installation
 
