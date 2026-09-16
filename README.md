@@ -2,16 +2,21 @@
 
 **WikiMaster Addons** is a browser extension that enhances your gaming experience on [Wiki-Masters](https://www.wiki-masters.com). It provides automated features to save you time and helps you track your stats.
 
-## ✨ Fonctionnalités (Features)
+## Features
 
-- **Auto-Opener ("Ouvrir Tout")** : Ajoute un bouton intelligent sur la page d'ouverture des paquets (`/pulls`). Un seul clic permet d'ouvrir tous vos paquets à la suite, vous évitant de cliquer manuellement des dizaines de fois.
-- **Auto-Claim Achievements ("Tout réclamer")** : Ajoute un bouton sur la page des succès (`/achievements`) pour réclamer toutes vos récompenses débloquées en une seule action.
-- **Bloqueur de Micro-transactions (MTX Blocker)** : Désintègre automatiquement les offres "WikiMasters PRO", les boutiques de "WikiBidous" et les boutons d'achat en argent réel de l'interface du jeu. L'algorithme scanne et nettoie la page en temps réel. Activable depuis les paramètres.
-- **Contrôle du Volume (Volume Control)** : Ajoute un curseur de volume exclusif dans la page des paramètres (`/settings`) pour baisser ou couper les effets sonores assourdissants lors de l'ouverture des paquets.
-- **Smart Polling & Anti-Spam** : Le script détecte dynamiquement les éléments à l'écran et intègre des pauses de sécurité intelligentes (ex: 1.5s entre chaque paquet) pour éviter de déclencher l'erreur "Opening too fast" du jeu.
-- **Console de Débogage & Options Intégrées** : Ajoute un panneau de contrôle (UI) magnifique et natif dans la page des paramètres du jeu (`/settings`). Permet de gérer le bloqueur MTX et d'afficher, copier ou effacer les logs de l'extension en direct.
+- **Auto-Opener ("Ouvrir Tout")**: Adds a smart button on the pack opening page (`/pulls`). A single click automatically opens all your packs in succession, saving you from clicking manually dozens of times.
+- **Auto-Claim Achievements ("Tout réclamer")**: Adds a button on the achievements page (`/achievements`) that lets you claim all your unlocked achievements in a single action.
+- **Micro-transaction Blocker (MTX Blocker)**: Automatically removes intrusive "WikiMasters PRO" offers, "WikiBidous" shops, and real-money purchase buttons from the game's interface. The algorithm scans and cleans the page in real time. Can be toggled in the settings.
+  
+  ![MTX Blocker](README_IMG2.png)
+  
+- **Volume Control**: Adds an exclusive volume slider in the settings page (`/settings`) to precisely lower or mute the deafening sound effects during pack openings.
+- **Smart Polling & Anti-Spam**: The script dynamically detects on-screen elements and integrates smart safety pauses (e.g., 1.5s between packs) to avoid triggering the game's "Opening too fast" rate-limit error.
+- **Debugging Console & Integrated Options**: Injects a beautiful, native-looking control panel into the game's settings page (`/settings`). Allows you to manage the MTX blocker and view, copy, or clear the extension's live logs.
 
-## 🛠 Installation
+  ![Debugging Console](README_IMG1.png)
+
+## Installation
 
 To install this extension on Google Chrome (or any Chromium-based browser):
 
@@ -22,16 +27,20 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 5. Select the folder containing the extension files (`WikimasterAddons/extension/`).
 6. You're all set! The extension icon will appear in your toolbar.
 
-## 🎮 Utilisation
+## Usage
 
-1. **Ouverture de paquets** : Allez sur la page `/pulls`. Un grand bouton vert **"Ouvrir Tout"** apparaîtra sous vos paquets. Cliquez dessus et laissez la magie opérer !
-2. **Récupération des succès** : Allez sur la page `/achievements` pour voir le bouton **"Tout réclamer"**.
-3. **Paramètres et Options** : Allez sur la page `/settings` pour :
-   - Régler le volume des effets sonores du jeu avec précision.
-   - Activer ou désactiver le **Bloqueur de Micro-transactions** en un clic.
-   - Consulter la **Console Wikimaster** (logs en direct).
+1. **Opening packs**: Go to the `/pulls` page. A large green **"Ouvrir Tout"** (Open All) button will appear below your packs. Click it and let the magic happen!
+2. **Claiming achievements**: Go to the `/achievements` page to use the **"Tout réclamer"** (Claim All) button.
+3. **Settings and Options**: Go to the `/settings` page to:
+   - Precisely adjust the volume of the game's sound effects.
+   - Toggle the **Micro-transaction Blocker** with a single click.
+   - Check the **Wikimaster Console** for live extension logs.
 
-## 👨‍💻 Tech Stack
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Tech Stack
 
 - Modern HTML5 / CSS3 (Flexbox, CSS Variables, Native Animations)
 - Vanilla JavaScript (ES6, MutationObserver)
