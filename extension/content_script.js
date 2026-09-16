@@ -30,8 +30,8 @@ function injectOpenAllButton() {
   btn.innerText = 'Ouvrir Tout';
   btn.style.cssText = `
     padding: 12px 24px;
-    background: #4cd68fff;
-    color: #ffffffff;
+    background: #34d399;
+    color: #ffffff;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
@@ -46,15 +46,15 @@ function injectOpenAllButton() {
 
   btn.onmouseover = () => {
     if (!btn.disabled) {
-      btn.style.background = '#3ca66fff';
-      btn.style.color = '#d2d2d2ff';
+      btn.style.background = '#6ee7b7';
+      btn.style.color = '#ffffff';
     }
   };
 
   btn.onmouseout = () => {
     if (!btn.disabled) {
-      btn.style.background = '#4cd68fff';
-      btn.style.color = '#ffffffff';
+      btn.style.background = '#34d399';
+      btn.style.color = '#ffffff';
     }
   };
 
@@ -227,6 +227,98 @@ function observeCards() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+// ---------------------------------------------------------
+// LOGIQUE POUR LA PAGE DES SUCCÈS (/achievements)
+// ---------------------------------------------------------
+
+function injectClaimAllButton() {
+  if (document.getElementById('wikimaster-claim-all-btn')) return;
+
+  // On cible le conteneur du titre "Succès" tout en haut de la page
+  const h1 = Array.from(document.querySelectorAll('h1')).find(el => el.innerText.includes('Succès'));
+  if (!h1) return;
+  const titleContainer = h1.parentElement;
+
+  const btn = document.createElement('button');
+  btn.id = 'wikimaster-claim-all-btn';
+  btn.innerText = 'Tout réclamer';
+  
+  // Style similaire au bouton "Ouvrir tout"
+  btn.style.cssText = `
+    padding: 12px 24px;
+    background: #34d399;
+    color: #ffffff;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 48px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  `;
+
+  btn.onmouseover = () => {
+    if (!btn.disabled) {
+      btn.style.background = '#6ee7b7';
+      btn.style.color = '#ffffff';
+    }
+  };
+
+  btn.onmouseout = () => {
+    if (!btn.disabled) {
+      btn.style.background = '#34d399';
+      btn.style.color = '#ffffff';
+    }
+  };
+
+  btn.addEventListener('click', claimAllAchievements);
+
+  // On met le conteneur du titre en relative pour que le bouton en absolute se cale à droite
+  titleContainer.style.position = 'relative';
+  titleContainer.appendChild(btn);
+}
+
+async function claimAllAchievements() {
+  const btn = document.getElementById('wikimaster-claim-all-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.dataset.running = 'true';
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="animation: wikimaster-spin 1s linear infinite; transform-origin: center;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`;
+  }
+
+  logDebug("[START] Réclamation automatique des succès.");
+
+  while (true) {
+    // Récupérer tous les boutons 'Réclamer' actifs
+    const buttons = Array.from(document.querySelectorAll('button')).filter(b => 
+      b.innerText.trim() === 'Réclamer' && !b.disabled
+    );
+
+    if (buttons.length === 0) {
+      logDebug("[END] Tous les succès ont été réclamés !");
+      break;
+    }
+
+    logDebug(`[ACTION] Clic sur Réclamer... (Reste: ${buttons.length})`);
+    buttons[0].click();
+    
+    // Attendre 600ms pour laisser le temps à la requête de s'exécuter et au bouton de se désactiver
+    await sleep(600);
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    delete btn.dataset.running;
+    btn.innerText = 'Tout réclamer';
+  }
+}
+
 // Initialisation
 function init() {
   // Injecter les styles CSS pour l'animation s'ils ne sont pas déjà là
@@ -272,10 +364,45 @@ function init() {
           }
         }
       }
-
     } else {
       const btn = document.getElementById('wikimaster-open-all-btn');
       if (btn) btn.remove();
+    }
+
+    if (window.location.pathname.includes('/achievements')) {
+      let claimBtn = document.getElementById('wikimaster-claim-all-btn');
+      if (!claimBtn) {
+        injectClaimAllButton();
+        claimBtn = document.getElementById('wikimaster-claim-all-btn');
+      }
+
+      if (claimBtn && claimBtn.dataset.running !== 'true') {
+        const claimableButtons = Array.from(document.querySelectorAll('button')).filter(b => 
+          b.innerText.trim() === 'Réclamer' && !b.disabled
+        );
+
+        if (claimableButtons.length === 0) {
+          if (claimBtn.innerText !== 'Rien à réclamer') {
+            claimBtn.disabled = true;
+            claimBtn.style.opacity = '0.4';
+            claimBtn.style.cursor = 'not-allowed';
+            claimBtn.innerText = 'Rien à réclamer';
+          }
+        } else {
+          const expectedText = `Tout réclamer (${claimableButtons.length})`;
+          if (claimBtn.innerText === 'Rien à réclamer') {
+            claimBtn.disabled = false;
+            claimBtn.style.opacity = '1';
+            claimBtn.style.cursor = 'pointer';
+            claimBtn.innerText = expectedText;
+          } else if (claimBtn.innerText !== expectedText) {
+            claimBtn.innerText = expectedText;
+          }
+        }
+      }
+    } else {
+      const claimBtn = document.getElementById('wikimaster-claim-all-btn');
+      if (claimBtn) claimBtn.remove();
     }
   });
 
