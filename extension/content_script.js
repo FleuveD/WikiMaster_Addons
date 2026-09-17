@@ -83,7 +83,7 @@ function injectOpenAllButton() {
   btn.innerText = 'Ouvrir Tout';
   btn.style.cssText = `
     padding: 12px 24px;
-    background: #34d399;
+    background: var(--theme-gradient, var(--color-accent));
     color: #ffffff;
     border-radius: 12px;
     font-size: 16px;
@@ -99,15 +99,13 @@ function injectOpenAllButton() {
 
   btn.onmouseover = () => {
     if (!btn.disabled) {
-      btn.style.background = '#6ee7b7';
-      btn.style.color = '#ffffff';
+      btn.style.opacity = '0.85';
     }
   };
 
   btn.onmouseout = () => {
     if (!btn.disabled) {
-      btn.style.background = '#34d399';
-      btn.style.color = '#ffffff';
+      btn.style.opacity = '1';
     }
   };
 
@@ -307,7 +305,7 @@ function injectClaimAllButton() {
   // Style similaire au bouton "Ouvrir tout"
   btn.style.cssText = `
     padding: 12px 24px;
-    background: #34d399;
+    background: var(--theme-gradient, var(--color-accent));
     color: #ffffff;
     border-radius: 12px;
     font-size: 16px;
@@ -326,15 +324,13 @@ function injectClaimAllButton() {
 
   btn.onmouseover = () => {
     if (!btn.disabled) {
-      btn.style.background = '#6ee7b7';
-      btn.style.color = '#ffffff';
+      btn.style.opacity = '0.85';
     }
   };
 
   btn.onmouseout = () => {
     if (!btn.disabled) {
-      btn.style.background = '#34d399';
-      btn.style.color = '#ffffff';
+      btn.style.opacity = '1';
     }
   };
 
@@ -599,7 +595,7 @@ function injectLogsPanel() {
   const updateMtxToggle = (isActive) => {
     mtxBtn.setAttribute('aria-checked', isActive.toString());
     if (isActive) {
-      mtxBtn.style.background = '#34d399';
+      mtxBtn.style.background = 'var(--theme-gradient, var(--color-accent))';
       mtxSpan.style.transform = 'translateX(24px)';
     } else {
       mtxBtn.style.background = 'var(--color-border)';
@@ -633,7 +629,7 @@ function injectLogsPanel() {
   const updateMenuToggle = (isActive) => {
     menuBtn.setAttribute('aria-checked', isActive.toString());
     if (isActive) {
-      menuBtn.style.background = '#34d399';
+      menuBtn.style.background = 'var(--theme-gradient, var(--color-accent))';
       menuSpan.style.transform = 'translateX(24px)';
       document.body.classList.add('wikimaster-compact-menu');
     } else {
@@ -792,9 +788,9 @@ function injectVolumeSlider() {
         <span class="text-sm text-[var(--color-foreground)]">Volume des effets</span>
         <span class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste le volume d'ouverture des paquets</span>
       </div>
-      <span id="wikimaster-volume-value" class="text-sm font-bold" style="color: #34d399;">100%</span>
+      <span id="wikimaster-volume-value" class="text-sm font-bold" style="color: var(--color-accent);">100%</span>
     </div>
-    <input type="range" id="wikimaster-volume-slider" min="0" max="100" value="100" class="w-full cursor-pointer" style="accent-color: #34d399;">
+    <input type="range" id="wikimaster-volume-slider" min="0" max="100" value="100" class="w-full cursor-pointer" style="accent-color: var(--color-accent);">
   `;
 
   if (!document.getElementById('wikimaster-volume-style')) {
@@ -802,7 +798,7 @@ function injectVolumeSlider() {
     style.id = 'wikimaster-volume-style';
     style.innerHTML = `
       #wikimaster-volume-slider {
-        accent-color: #34d399 !important;
+        accent-color: var(--color-accent) !important;
       }
     `;
     document.head.appendChild(style);
