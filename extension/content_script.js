@@ -23,11 +23,11 @@ const CONFIG = {
 };
 
 const THEMES = {
-  emerald: { name: 'Émeraude (Défaut)', accent: '#34d399', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
-  amethyst: { name: 'Améthyste', accent: '#a855f7', gradient: 'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)' },
-  ocean: { name: 'Océan', accent: '#0ea5e9', gradient: 'linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%)' },
-  ruby: { name: 'Rubis', accent: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' },
-  gold: { name: 'Or', accent: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' }
+  emerald: { name: 'Vert (Défaut)', accent: '#34d399', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
+  amethyst: { name: 'Violet', accent: '#a855f7', gradient: 'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)' },
+  ocean: { name: 'Bleu', accent: '#0ea5e9', gradient: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)' },
+  ruby: { name: 'Rouge', accent: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e 0%, #9f1239 100%)' },
+  gold: { name: 'Jaune', accent: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' }
 };
 
 function applyTheme(themeKey) {
@@ -452,9 +452,9 @@ function injectLogsPanel() {
   let themeButtonsHTML = '';
   for (const [key, theme] of Object.entries(THEMES)) {
     themeButtonsHTML += `
-      <button class="theme-selector-btn rounded-full w-8 h-8 cursor-pointer border-2 transition-all hover:scale-110" 
+      <button class="theme-selector-btn rounded-full w-8 h-8 cursor-pointer transition-all hover:scale-110" 
               data-theme="${key}" 
-              style="background: ${theme.gradient}; border-color: transparent;" 
+              style="background: ${theme.gradient}; border: none;" 
               title="${theme.name}">
       </button>
     `;
@@ -595,7 +595,7 @@ function injectLogsPanel() {
   const updateMtxToggle = (isActive) => {
     mtxBtn.setAttribute('aria-checked', isActive.toString());
     if (isActive) {
-      mtxBtn.style.background = 'var(--theme-gradient, var(--color-accent))';
+      mtxBtn.style.background = 'var(--color-accent)';
       mtxSpan.style.transform = 'translateX(24px)';
     } else {
       mtxBtn.style.background = 'var(--color-border)';
@@ -629,7 +629,7 @@ function injectLogsPanel() {
   const updateMenuToggle = (isActive) => {
     menuBtn.setAttribute('aria-checked', isActive.toString());
     if (isActive) {
-      menuBtn.style.background = 'var(--theme-gradient, var(--color-accent))';
+      menuBtn.style.background = 'var(--color-accent)';
       menuSpan.style.transform = 'translateX(24px)';
       document.body.classList.add('wikimaster-compact-menu');
     } else {
@@ -655,10 +655,10 @@ function injectLogsPanel() {
   const updateThemeUI = (activeTheme) => {
     themeButtons.forEach(btn => {
       if (btn.dataset.theme === activeTheme) {
-        btn.style.borderColor = 'white';
+        btn.style.boxShadow = '0 0 0 2px var(--color-surface), 0 0 0 4px white';
         btn.style.transform = 'scale(1.1)';
       } else {
-        btn.style.borderColor = 'transparent';
+        btn.style.boxShadow = 'none';
         btn.style.transform = 'scale(1)';
       }
     });
