@@ -55,6 +55,46 @@ function applyTheme(themeKey) {
   `;
 }
 
+const BASE_THEMES = {
+  darkBlack: { name: 'Noir foncé', bg: '#09090b', surface: '#18181b', surfaceLight: '#27272a', border: '#3f3f46', text: '#f4f4f5' },
+  dark: { name: 'Noir', bg: '#121212', surface: '#1e1e1e', surfaceLight: '#2d2d2d', border: '#404040', text: '#e5e5e5' },
+  light: { name: 'Blanc (Light mode)', bg: '#ffffff', surface: '#f4f4f5', surfaceLight: '#e4e4e7', border: '#d4d4d8', text: '#18181b' },
+  cream: { name: 'Beige crème (Light mode)', bg: '#fdfbf7', surface: '#f3f0e6', surfaceLight: '#e8e4d9', border: '#d6d1c4', text: '#433829' },
+  blue: { name: 'Bleu foncé', bg: '#0f172a', surface: '#1e293b', surfaceLight: '#334155', border: '#475569', text: '#f8fafc' }
+};
+
+function applyBaseTheme(baseKey) {
+  const base = BASE_THEMES[baseKey] || BASE_THEMES.dark;
+  let styleEl = document.getElementById('wikimaster-base-theme-styles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'wikimaster-base-theme-styles';
+    document.head.appendChild(styleEl);
+  }
+  
+  styleEl.innerHTML = `
+    :root, .dark, body {
+      --color-background: ${base.bg} !important;
+      --color-surface: ${base.surface} !important;
+      --color-surface-light: ${base.surfaceLight} !important;
+      --color-border: ${base.border} !important;
+      --color-foreground: ${base.text} !important;
+      background-color: ${base.bg} !important;
+      color: ${base.text} !important;
+    }
+    
+    .card-frame {
+      background-color: var(--color-surface) !important;
+      border-color: var(--color-border) !important;
+    }
+    
+    /* Boutons de log et divers éléments utilisant la surface-light */
+    .bg-\\[var\\(--color-surface-light\\)\\] {
+      background-color: var(--color-surface-light) !important;
+    }
+  `;
+}
+
 // =========================================================================
 // ÉTAT GLOBAL & CACHE
 // =========================================================================
@@ -466,33 +506,44 @@ function injectLogsPanel() {
     return h3 && h3.textContent.trim() === 'Apparence';
   });
 
-  if (apparencePanel) {
-    apparencePanel.id = 'wikimaster-apparence-panel';
-    const themeSection = document.createElement('div');
-    themeSection.className = 'mt-4 border-t border-[var(--color-border)] pt-4';
-    themeSection.innerHTML = `
+  let baseThemeButtonsHTML = '';
+  for (const [key, base] of Object.entries(BASE_THEMES)) {
+    baseThemeButtonsHTML += `
+      <button class="base-theme-selector-btn rounded-full w-8 h-8 cursor-pointer transition-all hover:scale-110" 
+              data-basetheme="${key}" 
+              style="background: ${base.bg}; border: 1px solid ${base.border};" 
+              title="${base.name}">
+      </button>
+    `;
+  }
+
+  const apparenceContent = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Apparence</h3>
+    <div class="flex flex-col gap-2">
+      <p class="text-sm text-[var(--color-foreground)]">Couleurs de l'interface</p>
+      <div class="flex items-center gap-3 mt-2" id="wikimaster-base-theme-list">
+        ${baseThemeButtonsHTML}
+      </div>
+    </div>
+    <div class="mt-4 border-t border-[var(--color-border)] pt-4">
       <div class="flex flex-col gap-2">
-        <p class="text-sm text-[var(--color-foreground)]">Couleurs de l'interface</p>
+        <p class="text-sm text-[var(--color-foreground)]">Couleurs d'accentuation</p>
         <div class="flex items-center gap-3 mt-2" id="wikimaster-theme-list">
           ${themeButtonsHTML}
         </div>
       </div>
-    `;
-    apparencePanel.appendChild(themeSection);
+    </div>
+  `;
+
+  if (apparencePanel) {
+    apparencePanel.id = 'wikimaster-apparence-panel';
+    apparencePanel.innerHTML = apparenceContent;
   } else {
-    // Fallback de sécurité si le jeu change sa structure
+    // Fallback de sécurité
     apparencePanel = document.createElement('div');
     apparencePanel.id = 'wikimaster-apparence-panel';
     apparencePanel.className = 'card-frame p-5 animate-fade-in-up';
-    apparencePanel.innerHTML = `
-      <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Apparence</h3>
-      <div class="flex flex-col gap-2">
-        <p class="text-sm text-[var(--color-foreground)]">Couleurs de l'interface</p>
-        <div class="flex items-center gap-3 mt-2" id="wikimaster-theme-list">
-          ${themeButtonsHTML}
-        </div>
-      </div>
-    `;
+    apparencePanel.innerHTML = apparenceContent;
   }
 
   // Panneau d'options (Interface)
@@ -652,10 +703,12 @@ function injectLogsPanel() {
 
   // Logique pour les Thèmes
   const themeButtons = apparencePanel.querySelectorAll('.theme-selector-btn');
+  const baseThemeButtons = apparencePanel.querySelectorAll('.base-theme-selector-btn');
+
   const updateThemeUI = (activeTheme) => {
     themeButtons.forEach(btn => {
       if (btn.dataset.theme === activeTheme) {
-        btn.style.boxShadow = '0 0 0 2px var(--color-surface), 0 0 0 4px white';
+        btn.style.boxShadow = '0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-foreground)';
         btn.style.transform = 'scale(1.1)';
       } else {
         btn.style.boxShadow = 'none';
@@ -664,8 +717,33 @@ function injectLogsPanel() {
     });
   };
 
-  chrome.storage.local.get({ theme: 'emerald' }, (res) => {
+  const updateBaseThemeUI = (activeBase) => {
+    baseThemeButtons.forEach(btn => {
+      if (btn.dataset.basetheme === activeBase) {
+        btn.style.boxShadow = '0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent)';
+        btn.style.transform = 'scale(1.1)';
+      } else {
+        btn.style.boxShadow = 'none';
+        btn.style.transform = 'scale(1)';
+      }
+    });
+  };
+
+  chrome.storage.local.get({ baseTheme: 'dark', theme: 'emerald' }, (res) => {
+    updateBaseThemeUI(res.baseTheme);
     updateThemeUI(res.theme);
+  });
+
+  baseThemeButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const selectedBase = e.currentTarget.dataset.basetheme;
+      chrome.storage.local.set({ baseTheme: selectedBase }, () => {
+        updateBaseThemeUI(selectedBase);
+        applyBaseTheme(selectedBase);
+        // Réappliquer le focus UI complet car les variables ont changé
+        updateThemeUI(document.querySelector('.theme-selector-btn[style*="scale(1.1)"]')?.dataset.theme || 'emerald');
+      });
+    });
   });
 
   themeButtons.forEach(btn => {
@@ -674,6 +752,8 @@ function injectLogsPanel() {
       chrome.storage.local.set({ theme: selectedTheme }, () => {
         updateThemeUI(selectedTheme);
         applyTheme(selectedTheme); // Application immédiate
+        // Réappliquer le focus UI du base theme car l'accent a changé
+        updateBaseThemeUI(document.querySelector('.base-theme-selector-btn[style*="scale(1.1)"]')?.dataset.basetheme || 'dark');
       });
     });
   });
@@ -897,7 +977,7 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, theme: 'emerald' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
@@ -905,7 +985,8 @@ function init() {
       document.body.classList.add('wikimaster-compact-menu');
     }
 
-    // Appliquer le thème
+    // Appliquer les thèmes
+    applyBaseTheme(result.baseTheme);
     applyTheme(result.theme);
   });
 
