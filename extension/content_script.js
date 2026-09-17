@@ -239,6 +239,9 @@ function observeCards() {
                 };
                 console.log("[Wikimaster Extension] Nouvelle carte détectée:", cardData);
                 saveCardToHistory(cardData);
+                
+                // Nettoyer les MTX à l'ouverture d'un paquet
+                removeMicroTransactions();
               }
             } catch (e) {
               console.error("[Wikimaster Extension] Erreur lors de l'extraction de la carte:", e);
@@ -688,7 +691,7 @@ function init() {
 
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
   // On utilise un observer global pour s'assurer que le bouton reste présent et à jour.
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((mutations) => {
     if (!chrome.runtime?.id) {
       observer.disconnect();
       return;
@@ -781,11 +784,64 @@ function init() {
       if (main) main.classList.remove('wikimaster-settings-layout');
     }
 
-    // Appliquer le filtre MTX en continu
-    removeMicroTransactions();
+    // DETECTEUR LEGER MTX : On vérifie si un noeud ajouté contient des mots-clés MTX
+    if (cachedHideMtx) {
+      let mtxTriggered = false;
+      for (let mutation of mutations) {
+        for (let node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const text = node.textContent ? node.textContent.toLowerCase() : '';
+            if (
+              text.includes('wikimasters pro') || 
+              text.includes('wikibidous') || 
+              text.includes('rechargez') || 
+              text.includes('s\'abonner') ||
+              text.includes('s’abonner')
+            ) {
+              mtxTriggered = true;
+              break;
+            }
+          }
+        }
+        if (mtxTriggered) break;
+      }
+      
+      if (mtxTriggered) {
+        removeMicroTransactions();
+      }
+    }
   });
 
   observer.observe(document.body, { subtree: true, childList: true });
+  
+  // STRATÉGIE MTX OPTIMISÉE : Au lieu de scanner la page à chaque changement (gourmand),
+  // on utilise des déclencheurs ciblés comme demandé.
+  
+  // 1. Au lancement initial
+  removeMicroTransactions();
+
+  // 2. Changement de page / onglet (SPA)
+  let lastUrl = location.href;
+  setInterval(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      removeMicroTransactions();
+    }
+  }, 1000);
+
+  // 3. Ouverture de la boutique (clic sur le bouton WikiBidous ou n'importe quel lien)
+  document.addEventListener('click', (e) => {
+    if (!cachedHideMtx) return;
+    const isShopButton = e.target.closest('button[aria-label="Ouvrir la boutique WikiBidous"]');
+    const isNavigation = e.target.closest('a');
+    
+    if (isShopButton || isNavigation) {
+      // La page ou la modale va s'afficher, on lance le nettoyeur plusieurs fois
+      setTimeout(removeMicroTransactions, 50);
+      setTimeout(removeMicroTransactions, 500);
+      setTimeout(removeMicroTransactions, 1200);
+    }
+  });
 
   // On lance aussi une première tentative d'injection immédiate si on est sur la bonne page
   if (window.location.pathname.includes('/pulls')) {
