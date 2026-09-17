@@ -239,7 +239,7 @@ function observeCards() {
                 };
                 console.log("[Wikimaster Extension] Nouvelle carte détectée:", cardData);
                 saveCardToHistory(cardData);
-                
+
                 // Nettoyer les MTX à l'ouverture d'un paquet
                 removeMicroTransactions();
               }
@@ -408,12 +408,31 @@ function injectLogsPanel() {
   optionsPanel.className = 'card-frame p-5 animate-fade-in-up';
   optionsPanel.innerHTML = `
     <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Bloqueur</h3>
+    
     <div class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Masquer les micro-transactions</p>
         <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Cache l'encart WikiMasters PRO et autres offres</p>
       </div>
       <button id="wikimaster-toggle-mtx" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+  `;
+
+  // Panneau d'options (Interface)
+  const interfacePanel = document.createElement('div');
+  interfacePanel.id = 'wikimaster-interface-panel';
+  interfacePanel.className = 'card-frame p-5 animate-fade-in-up';
+  interfacePanel.innerHTML = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Interface</h3>
+    
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Amélioration du menu gauche</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste l'espacement pour que tout rentre dans l'écran sans défilement</p>
+      </div>
+      <button id="wikimaster-toggle-menu" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
       </button>
     </div>
@@ -442,6 +461,7 @@ function injectLogsPanel() {
   `;
 
   panelContainer.appendChild(optionsPanel);
+  panelContainer.appendChild(interfacePanel);
   panelContainer.appendChild(panel);
   main.appendChild(panelContainer);
 
@@ -524,6 +544,34 @@ function injectLogsPanel() {
     } else {
       window.location.reload(); // Recharger la page pour restaurer les éléments cachés
     }
+  });
+
+  // Logique pour le toggle Menu
+  const menuBtn = document.getElementById('wikimaster-toggle-menu');
+  const menuSpan = menuBtn.querySelector('span');
+
+  const updateMenuToggle = (isActive) => {
+    menuBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      menuBtn.style.background = '#34d399';
+      menuSpan.style.transform = 'translateX(24px)';
+      document.body.classList.add('wikimaster-compact-menu');
+    } else {
+      menuBtn.style.background = 'var(--color-border)';
+      menuSpan.style.transform = 'translateX(0px)';
+      document.body.classList.remove('wikimaster-compact-menu');
+    }
+  };
+
+  chrome.storage.local.get({ compactMenu: true }, (res) => {
+    updateMenuToggle(res.compactMenu);
+  });
+
+  menuBtn.addEventListener('click', () => {
+    const currentState = menuBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateMenuToggle(newState);
+    chrome.storage.local.set({ compactMenu: newState });
   });
 }
 
@@ -678,15 +726,49 @@ function init() {
   if (!document.getElementById('wikimaster-styles')) {
     const style = document.createElement('style');
     style.id = 'wikimaster-styles';
-    style.innerHTML = `@keyframes wikimaster-spin { 100% { transform: rotate(360deg); } }`;
+    style.innerHTML = `
+      @keyframes wikimaster-spin { 100% { transform: rotate(360deg); } }
+      
+      /* Amélioration de l'interface : forcer le menu de gauche (sidebar) à prendre tout l'écran */
+      body.wikimaster-compact-menu nav.w-64 {
+        height: 100dvh !important;
+        min-height: 100vh !important;
+        position: sticky !important;
+        top: 0 !important;
+        scrollbar-width: none !important; /* Firefox */
+        -ms-overflow-style: none !important; /* IE */
+        padding: 1.25rem !important; /* Réduit le padding global (p-6) */
+        gap: 0.25rem !important; /* Réduit l'espace entre chaque onglet (gap-2) */
+      }
+      
+      body.wikimaster-compact-menu nav.w-64::-webkit-scrollbar {
+        display: none !important; /* Chrome, Safari, Edge */
+      }
+
+      /* Réduire la marge sous le logo */
+      body.wikimaster-compact-menu nav.w-64 .mb-8 {
+        margin-bottom: 1rem !important; 
+      }
+
+      /* Réduire la hauteur des onglets eux-mêmes */
+      body.wikimaster-compact-menu nav.w-64 a {
+        padding-top: 0.7rem !important; /* au lieu de py-3 */
+        padding-bottom: 0.7rem !important;
+      }
+    `;
     document.head.appendChild(style);
   }
 
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100 }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
+    
+    // Activer l'amélioration du menu si l'option est activée (par défaut)
+    if (result.compactMenu) {
+      document.body.classList.add('wikimaster-compact-menu');
+    }
   });
 
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
@@ -792,9 +874,9 @@ function init() {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const text = node.textContent ? node.textContent.toLowerCase() : '';
             if (
-              text.includes('wikimasters pro') || 
-              text.includes('wikibidous') || 
-              text.includes('rechargez') || 
+              text.includes('wikimasters pro') ||
+              text.includes('wikibidous') ||
+              text.includes('rechargez') ||
               text.includes('s\'abonner') ||
               text.includes('s’abonner')
             ) {
@@ -805,7 +887,7 @@ function init() {
         }
         if (mtxTriggered) break;
       }
-      
+
       if (mtxTriggered) {
         removeMicroTransactions();
       }
@@ -813,10 +895,10 @@ function init() {
   });
 
   observer.observe(document.body, { subtree: true, childList: true });
-  
+
   // STRATÉGIE MTX OPTIMISÉE : Au lieu de scanner la page à chaque changement (gourmand),
   // on utilise des déclencheurs ciblés comme demandé.
-  
+
   // 1. Au lancement initial
   removeMicroTransactions();
 
@@ -834,7 +916,7 @@ function init() {
     if (!cachedHideMtx) return;
     const isShopButton = e.target.closest('button[aria-label="Ouvrir la boutique WikiBidous"]');
     const isNavigation = e.target.closest('a');
-    
+
     if (isShopButton || isNavigation) {
       // La page ou la modale va s'afficher, on lance le nettoyeur plusieurs fois
       setTimeout(removeMicroTransactions, 50);
