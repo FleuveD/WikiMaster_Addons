@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-17
+
+### Added
+
+- Adding a new themes for the addon (Green, Purple, Blue, Red, Yellow)
+
+- Adding a compact sidebar for the addon
+
 ## [1.0.1] - 2026-09-16
 
 ### Added
@@ -12,8 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updating README.md with screenshots and better explanations
 
 - Adding LICENSE file to the project
-
-
 
 ## [1.0.0] - 2026-09-16
 
