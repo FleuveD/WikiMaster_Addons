@@ -16,11 +16,44 @@ const CONFIG = {
   // Sélecteur pour détecter l'apparition d'une nouvelle carte
   cardResultSelector: '.card-reveal',
 
-  // Sélecteurs pour extraire les infos de la carte depuis l'élément cardResultSelector
+// Sélecteurs pour extraire les infos de la carte depuis l'élément cardResultSelector
   cardNameSelector: '.card-name',
   cardRaritySelector: '.card-rarity',
   cardImageSelector: 'img'
 };
+
+const THEMES = {
+  emerald: { name: 'Émeraude (Défaut)', accent: '#34d399', gradient: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)' },
+  amethyst: { name: 'Améthyste', accent: '#a855f7', gradient: 'linear-gradient(135deg, #a855f7 0%, #d946ef 100%)' },
+  ocean: { name: 'Océan', accent: '#0ea5e9', gradient: 'linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%)' },
+  ruby: { name: 'Rubis', accent: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e 0%, #fb923c 100%)' },
+  gold: { name: 'Or', accent: '#fbbf24', gradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' }
+};
+
+function applyTheme(themeKey) {
+  const theme = THEMES[themeKey] || THEMES.emerald;
+  let styleEl = document.getElementById('wikimaster-theme-styles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'wikimaster-theme-styles';
+    document.head.appendChild(styleEl);
+  }
+  
+  styleEl.innerHTML = `
+    :root {
+      --color-accent: ${theme.accent} !important;
+      --theme-gradient: ${theme.gradient} !important;
+    }
+    
+    /* Boutons et éléments pleins avec le dégradé premium */
+    button.bg-\\[var\\(--color-accent\\)\\]\\/90,
+    button.bg-\\[var\\(--color-accent\\)\\],
+    .bg-\\[var\\(--color-accent\\)\\] {
+      background: var(--theme-gradient) !important;
+      border-color: transparent !important;
+    }
+  `;
+}
 
 // =========================================================================
 // ÉTAT GLOBAL & CACHE
@@ -389,7 +422,7 @@ function injectLogsPanel() {
         }
         #wikimaster-logs-container {
           width: 464px;
-          height: 512px;
+          height: 800px;
           min-height: 0;
           margin-bottom: 0;
         }
@@ -419,6 +452,52 @@ function injectLogsPanel() {
       </button>
     </div>
   `;
+
+  let themeButtonsHTML = '';
+  for (const [key, theme] of Object.entries(THEMES)) {
+    themeButtonsHTML += `
+      <button class="theme-selector-btn rounded-full w-8 h-8 cursor-pointer border-2 transition-all hover:scale-110" 
+              data-theme="${key}" 
+              style="background: ${theme.gradient}; border-color: transparent;" 
+              title="${theme.name}">
+      </button>
+    `;
+  }
+
+  // Panneau d'options (Apparence - Native)
+  let apparencePanel = Array.from(document.querySelectorAll('.card-frame')).find(el => {
+    const h3 = el.querySelector('h3');
+    return h3 && h3.textContent.trim() === 'Apparence';
+  });
+
+  if (apparencePanel) {
+    apparencePanel.id = 'wikimaster-apparence-panel';
+    const themeSection = document.createElement('div');
+    themeSection.className = 'mt-4 border-t border-[var(--color-border)] pt-4';
+    themeSection.innerHTML = `
+      <div class="flex flex-col gap-2">
+        <p class="text-sm text-[var(--color-foreground)]">Couleurs de l'interface</p>
+        <div class="flex items-center gap-3 mt-2" id="wikimaster-theme-list">
+          ${themeButtonsHTML}
+        </div>
+      </div>
+    `;
+    apparencePanel.appendChild(themeSection);
+  } else {
+    // Fallback de sécurité si le jeu change sa structure
+    apparencePanel = document.createElement('div');
+    apparencePanel.id = 'wikimaster-apparence-panel';
+    apparencePanel.className = 'card-frame p-5 animate-fade-in-up';
+    apparencePanel.innerHTML = `
+      <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Apparence</h3>
+      <div class="flex flex-col gap-2">
+        <p class="text-sm text-[var(--color-foreground)]">Couleurs de l'interface</p>
+        <div class="flex items-center gap-3 mt-2" id="wikimaster-theme-list">
+          ${themeButtonsHTML}
+        </div>
+      </div>
+    `;
+  }
 
   // Panneau d'options (Interface)
   const interfacePanel = document.createElement('div');
@@ -461,6 +540,7 @@ function injectLogsPanel() {
   `;
 
   panelContainer.appendChild(optionsPanel);
+  panelContainer.appendChild(apparencePanel);
   panelContainer.appendChild(interfacePanel);
   panelContainer.appendChild(panel);
   main.appendChild(panelContainer);
@@ -572,6 +652,34 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateMenuToggle(newState);
     chrome.storage.local.set({ compactMenu: newState });
+  });
+
+  // Logique pour les Thèmes
+  const themeButtons = apparencePanel.querySelectorAll('.theme-selector-btn');
+  const updateThemeUI = (activeTheme) => {
+    themeButtons.forEach(btn => {
+      if (btn.dataset.theme === activeTheme) {
+        btn.style.borderColor = 'white';
+        btn.style.transform = 'scale(1.1)';
+      } else {
+        btn.style.borderColor = 'transparent';
+        btn.style.transform = 'scale(1)';
+      }
+    });
+  };
+
+  chrome.storage.local.get({ theme: 'emerald' }, (res) => {
+    updateThemeUI(res.theme);
+  });
+
+  themeButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const selectedTheme = e.currentTarget.dataset.theme;
+      chrome.storage.local.set({ theme: selectedTheme }, () => {
+        updateThemeUI(selectedTheme);
+        applyTheme(selectedTheme); // Application immédiate
+      });
+    });
   });
 }
 
@@ -762,13 +870,16 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, theme: 'emerald' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
-    
+
     // Activer l'amélioration du menu si l'option est activée (par défaut)
     if (result.compactMenu) {
       document.body.classList.add('wikimaster-compact-menu');
     }
+
+    // Appliquer le thème
+    applyTheme(result.theme);
   });
 
   // L'URL peut changer dynamiquement et React/Next.js re-rend le DOM fréquemment.
