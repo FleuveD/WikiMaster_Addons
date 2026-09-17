@@ -11,8 +11,11 @@
   <img src="README_IMG2.png" alt="MTX Blocker" width="50%">
   
 - **Volume Control**: Adds an exclusive volume slider in the settings page (`/settings`) to precisely lower or mute the deafening sound effects during pack openings.
-- **Theme Customization (New!)**: Choose between 5 premium themes (Emerald, Amethyst, Ocean, Ruby, Gold). The extension dynamically overrides the game's default colors and injects rich, harmonious gradients into buttons and UI elements to make the interface pop!
-- **Compact Sidebar (New!)**: Sick of scrolling the left navigation menu? This toggleable feature (in `/settings`) intelligently compresses the sidebar spacing so that all 11 tabs fit perfectly on a standard screen height (`100dvh`) without any ugly scrollbars.
+- **Advanced Theme Customization**: Take full control of the game's appearance! Replace the basic dark mode toggle with **5 Global UI Themes** (Dark Black, Dark, White, Cream, Dark Blue) and **5 Accent Colors** (Green, Purple, Blue, Red, Yellow). With 25 unique combinations, the extension dynamically overrides the game's default CSS variables and injects rich, harmonious gradients into buttons to make the interface pop!
+
+  <img src="README_IMG3.png" alt="Theme Customization" width="50%">
+
+- **Compact Sidebar**: Sick of scrolling the left navigation menu? This toggleable feature (in `/settings`) intelligently compresses the sidebar spacing so that all 11 tabs fit perfectly on a standard screen height (`100dvh`) without any ugly scrollbars.
 - **Smart Polling & Anti-Spam**: The script dynamically detects on-screen elements and integrates smart safety pauses (e.g., 1.5s between packs) to avoid triggering the game's "Opening too fast" rate-limit error.
 - **Debugging Console & Integrated Options**: Injects a beautiful, native-looking control panel into the game's settings page (`/settings`). Allows you to manage the MTX blocker and view, copy, or clear the extension's live logs.
 
@@ -36,7 +39,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 3. **Settings and Options**: Go to the `/settings` page to:
    - Precisely adjust the volume of the game's sound effects.
    - Toggle the **Micro-transaction Blocker** or the **Compact Sidebar** with a single click.
-   - Choose your favorite **Theme Gradient** to personalize the game's look.
+   - Choose your favorite **Global UI Theme** and **Accent Gradient** to personalize the game's look (25 combinations available).
    - Check the **Wikimaster Console** for live extension logs.
 
 ## License
