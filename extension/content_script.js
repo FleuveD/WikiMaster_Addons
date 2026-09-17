@@ -798,7 +798,32 @@ function injectVolumeSlider() {
     style.id = 'wikimaster-volume-style';
     style.innerHTML = `
       #wikimaster-volume-slider {
-        accent-color: var(--color-accent) !important;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 99px;
+        background: var(--color-surface-light);
+        outline: none;
+      }
+      #wikimaster-volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        cursor: pointer;
+        border: 2px solid var(--color-surface);
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      }
+      #wikimaster-volume-slider::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        cursor: pointer;
+        border: 2px solid var(--color-surface);
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
       }
     `;
     document.head.appendChild(style);
@@ -811,14 +836,20 @@ function injectVolumeSlider() {
 
   if (!chrome.runtime?.id) return;
 
+  const updateSliderBg = (val) => {
+    slider.style.background = `linear-gradient(to right, var(--color-accent) ${val}%, var(--color-surface-light) ${val}%)`;
+  };
+
   chrome.storage.local.get({ volume: 100 }, (result) => {
     slider.value = result.volume;
     valueDisplay.innerText = result.volume + '%';
+    updateSliderBg(result.volume);
   });
 
   slider.addEventListener('input', (e) => {
     const val = e.target.value;
     valueDisplay.innerText = val + '%';
+    updateSliderBg(val);
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: val / 100 } }));
     chrome.storage.local.set({ volume: parseInt(val, 10) });
   });
