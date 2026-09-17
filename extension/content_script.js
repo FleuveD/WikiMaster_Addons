@@ -558,7 +558,7 @@ function injectLogsPanel() {
         if (logs.length === 0) {
           content.innerHTML = '<div style="opacity: 0.5; font-style: italic;">Aucun log récent...</div>';
         } else {
-          content.innerHTML = logs.map(l => `<div style="padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:#a855f7;font-weight:bold;">[${l.time}]</span> ${l.msg}</div>`).join('');
+          content.innerHTML = logs.map(l => `<div style="padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><span style="color:var(--color-accent);font-weight:bold;">[${l.time}]</span> ${l.msg}</div>`).join('');
         }
       });
     } catch (e) {
