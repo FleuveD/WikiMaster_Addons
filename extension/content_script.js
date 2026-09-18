@@ -16,7 +16,7 @@ const CONFIG = {
   // Sélecteur pour détecter l'apparition d'une nouvelle carte
   cardResultSelector: '.card-reveal',
 
-// Sélecteurs pour extraire les infos de la carte depuis l'élément cardResultSelector
+  // Sélecteurs pour extraire les infos de la carte depuis l'élément cardResultSelector
   cardNameSelector: '.card-name',
   cardRaritySelector: '.card-rarity',
   cardImageSelector: 'img'
@@ -38,7 +38,7 @@ function applyTheme(themeKey) {
     styleEl.id = 'wikimaster-theme-styles';
     document.head.appendChild(styleEl);
   }
-  
+
   styleEl.innerHTML = `
     :root {
       --color-accent: ${theme.accent} !important;
@@ -71,7 +71,7 @@ function applyBaseTheme(baseKey) {
     styleEl.id = 'wikimaster-base-theme-styles';
     document.head.appendChild(styleEl);
   }
-  
+
   styleEl.innerHTML = `
     :root, .dark, body {
       --color-background: ${base.bg} !important;
@@ -439,7 +439,6 @@ function injectLogsPanel() {
       .wikimaster-settings-layout {
         display: flex !important;
         flex-wrap: wrap !important;
-        gap: 24px;
         align-items: flex-start !important;
         width: 100% !important;
       }
@@ -559,6 +558,16 @@ function injectLogsPanel() {
         <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste l'espacement pour que tout rentre dans l'écran sans défilement</p>
       </div>
       <button id="wikimaster-toggle-menu" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+    
+    <div class="flex items-center justify-between gap-4 mt-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Centrage du chargement</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Centre correctement l'animation lors des chargements de page</p>
+      </div>
+      <button id="wikimaster-toggle-loading" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
       </button>
     </div>
@@ -699,6 +708,34 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateMenuToggle(newState);
     chrome.storage.local.set({ compactMenu: newState });
+  });
+
+  // Logique pour le toggle Centrage Chargement
+  const loadingBtn = document.getElementById('wikimaster-toggle-loading');
+  const loadingSpan = loadingBtn.querySelector('span');
+
+  const updateLoadingToggle = (isActive) => {
+    loadingBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      loadingBtn.style.background = 'var(--color-accent)';
+      loadingSpan.style.transform = 'translateX(24px)';
+      document.body.classList.add('wikimaster-center-loading');
+    } else {
+      loadingBtn.style.background = 'var(--color-border)';
+      loadingSpan.style.transform = 'translateX(0px)';
+      document.body.classList.remove('wikimaster-center-loading');
+    }
+  };
+
+  chrome.storage.local.get({ centerLoading: true }, (res) => {
+    updateLoadingToggle(res.centerLoading);
+  });
+
+  loadingBtn.addEventListener('click', () => {
+    const currentState = loadingBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateLoadingToggle(newState);
+    chrome.storage.local.set({ centerLoading: newState });
   });
 
   // Logique pour les Thèmes
@@ -969,6 +1006,12 @@ function init() {
         padding-top: 0 !important;
         padding-bottom: 0 !important;
       }
+
+      /* Centrer verticalement le cercle de chargement de la page */
+      body.wikimaster-center-loading main:has(> .flex-1.flex.items-center.justify-center > .animate-spin) {
+        display: flex !important;
+        flex-direction: column !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -976,12 +1019,17 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
     if (result.compactMenu) {
       document.body.classList.add('wikimaster-compact-menu');
+    }
+    
+    // Activer le centrage du chargement si l'option est activée (par défaut)
+    if (result.centerLoading) {
+      document.body.classList.add('wikimaster-center-loading');
     }
 
     // Appliquer les thèmes
