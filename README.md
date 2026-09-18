@@ -16,6 +16,7 @@
   <img src="README_IMG3.png" alt="Theme Customization" width="50%">
 
 - **Compact Sidebar**: Sick of scrolling the left navigation menu? This toggleable feature (in `/settings`) intelligently compresses the sidebar spacing so that all 11 tabs fit perfectly on a standard screen height (`100dvh`) without any ugly scrollbars.
+- **Loading Spinner Centering**: Fixes a visual layout bug on the site where the loading animation isn't properly centered vertically. This feature can be toggled in the settings.
 - **Smart Polling & Anti-Spam**: The script dynamically detects on-screen elements and integrates smart safety pauses (e.g., 1.5s between packs) to avoid triggering the game's "Opening too fast" rate-limit error.
 - **Debugging Console & Integrated Options**: Injects a beautiful, native-looking control panel into the game's settings page (`/settings`). Allows you to manage the MTX blocker and view, copy, or clear the extension's live logs.
 
@@ -38,7 +39,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 2. **Claiming achievements**: Go to the `/achievements` page to use the **"Tout réclamer"** (Claim All) button.
 3. **Settings and Options**: Go to the `/settings` page to:
    - Precisely adjust the volume of the game's sound effects.
-   - Toggle the **Micro-transaction Blocker** or the **Compact Sidebar** with a single click.
+   - Toggle the **Micro-transaction Blocker**, the **Compact Sidebar**, or the **Loading Spinner Centering** with a single click.
    - Choose your favorite **Global UI Theme** and **Accent Gradient** to personalize the game's look (25 combinations available).
    - Check the **Wikimaster Console** for live extension logs.
 
