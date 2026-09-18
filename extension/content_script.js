@@ -944,31 +944,30 @@ function init() {
     style.innerHTML = `
       @keyframes wikimaster-spin { 100% { transform: rotate(360deg); } }
       
-      /* Amélioration de l'interface : forcer le menu de gauche (sidebar) à prendre tout l'écran */
+      /* Amélioration de l'interface : forcer le menu de gauche (sidebar) à prendre tout l'écran sans scroll */
       body.wikimaster-compact-menu nav.w-64 {
+        height: 100vh !important;
         height: 100dvh !important;
-        min-height: 100vh !important;
         position: sticky !important;
         top: 0 !important;
-        scrollbar-width: none !important; /* Firefox */
-        -ms-overflow-style: none !important; /* IE */
         padding: 1.25rem !important; /* Réduit le padding global (p-6) */
-        gap: 0.25rem !important; /* Réduit l'espace entre chaque onglet (gap-2) */
-      }
-      
-      body.wikimaster-compact-menu nav.w-64::-webkit-scrollbar {
-        display: none !important; /* Chrome, Safari, Edge */
+        gap: 0.25rem !important;
+        justify-content: space-between !important;
+        overflow-y: hidden !important; /* Empêche formellement le scroll */
       }
 
-      /* Réduire la marge sous le logo */
+      /* Réduire la marge sous le logo pour laisser plus de place */
       body.wikimaster-compact-menu nav.w-64 .mb-8 {
-        margin-bottom: 1rem !important; 
+        margin-bottom: 0 !important; 
       }
 
-      /* Réduire la hauteur des onglets eux-mêmes */
+      /* Rendre les onglets flexibles pour s'adapter à toutes les hauteurs d'écran */
       body.wikimaster-compact-menu nav.w-64 a {
-        padding-top: 0.7rem !important; /* au lieu de py-3 */
-        padding-bottom: 0.7rem !important;
+        flex: 1 1 0% !important;
+        max-height: 3rem !important;
+        min-height: 2rem !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
       }
     `;
     document.head.appendChild(style);
