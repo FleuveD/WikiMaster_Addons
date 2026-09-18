@@ -457,10 +457,12 @@ function injectLogsPanel() {
         }
         #wikimaster-logs-container {
           width: 464px;
-          height: 800px;
           min-height: 0;
           margin-bottom: 0;
         }
+      }
+      #wikimaster-logs-panel {
+        max-height: 400px;
       }
     `;
     document.head.appendChild(style);
@@ -545,6 +547,24 @@ function injectLogsPanel() {
     apparencePanel.innerHTML = apparenceContent;
   }
 
+  // Panneau d'options (Performances)
+  const perfPanel = document.createElement('div');
+  perfPanel.id = 'wikimaster-perf-panel';
+  perfPanel.className = 'card-frame p-5 animate-fade-in-up';
+  perfPanel.innerHTML = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Performances</h3>
+    
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Désactiver les animations</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Supprime toutes les animations et transitions pour un rendu immédiat</p>
+      </div>
+      <button id="wikimaster-toggle-animations" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+  `;
+
   // Panneau d'options (Interface)
   const interfacePanel = document.createElement('div');
   interfacePanel.id = 'wikimaster-interface-panel';
@@ -598,6 +618,7 @@ function injectLogsPanel() {
   panelContainer.appendChild(optionsPanel);
   panelContainer.appendChild(apparencePanel);
   panelContainer.appendChild(interfacePanel);
+  panelContainer.appendChild(perfPanel);
   panelContainer.appendChild(panel);
   main.appendChild(panelContainer);
 
@@ -708,6 +729,34 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateMenuToggle(newState);
     chrome.storage.local.set({ compactMenu: newState });
+  });
+
+  // Logique pour le toggle Animations
+  const animBtn = document.getElementById('wikimaster-toggle-animations');
+  const animSpan = animBtn.querySelector('span');
+
+  const updateAnimToggle = (isActive) => {
+    animBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      animBtn.style.background = 'var(--color-accent)';
+      animSpan.style.transform = 'translateX(24px)';
+      document.body.classList.add('wikimaster-no-animations');
+    } else {
+      animBtn.style.background = 'var(--color-border)';
+      animSpan.style.transform = 'translateX(0px)';
+      document.body.classList.remove('wikimaster-no-animations');
+    }
+  };
+
+  chrome.storage.local.get({ disableAnimations: false }, (res) => {
+    updateAnimToggle(res.disableAnimations);
+  });
+
+  animBtn.addEventListener('click', () => {
+    const currentState = animBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateAnimToggle(newState);
+    chrome.storage.local.set({ disableAnimations: newState });
   });
 
   // Logique pour le toggle Centrage Chargement
@@ -1012,6 +1061,14 @@ function init() {
         display: flex !important;
         flex-direction: column !important;
       }
+
+      /* Désactiver toutes les animations */
+      body.wikimaster-no-animations *,
+      body.wikimaster-no-animations *::before,
+      body.wikimaster-no-animations *::after {
+        animation: none !important;
+        transition: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -1019,17 +1076,22 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
     if (result.compactMenu) {
       document.body.classList.add('wikimaster-compact-menu');
     }
-    
+
     // Activer le centrage du chargement si l'option est activée (par défaut)
     if (result.centerLoading) {
       document.body.classList.add('wikimaster-center-loading');
+    }
+
+    // Désactiver les animations
+    if (result.disableAnimations) {
+      document.body.classList.add('wikimaster-no-animations');
     }
 
     // Appliquer les thèmes
