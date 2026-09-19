@@ -17,6 +17,9 @@
 
 - **Compact Sidebar**: Sick of scrolling the left navigation menu? This toggleable feature (in `/settings`) intelligently compresses the sidebar spacing so that all 11 tabs fit perfectly on a standard screen height (`100dvh`) without any ugly scrollbars.
 - **Loading Spinner Centering**: Fixes a visual layout bug on the site where the loading animation isn't properly centered vertically. This feature can be toggled in the settings.
+- **Extreme Performance Suite**: Two new toggles in `/settings` to drastically improve performance on low-end devices or slow connections:
+  - **Disable Animations**: Strips all CSS animations and transitions for immediate UI rendering.
+  - **Disable Images (Network Block)**: Completely intercepts and blocks all network requests for images and videos using Chrome's `declarativeNetRequest` API. Saves 100% of image bandwidth and GPU decoding power. Pack and card images are seamlessly replaced by a local lightweight WikiMaster logo, and cards dynamically adapt their background colors based on their native rarity (Common, Rare, Epic, Legendary, Mythic) so the game remains beautiful and playable even without photos!
 - **Smart Polling & Anti-Spam**: The script dynamically detects on-screen elements and integrates smart safety pauses (e.g., 1.5s between packs) to avoid triggering the game's "Opening too fast" rate-limit error.
 - **Debugging Console & Integrated Options**: Injects a beautiful, native-looking control panel into the game's settings page (`/settings`). Allows you to manage the MTX blocker and view, copy, or clear the extension's live logs.
 
@@ -40,6 +43,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 3. **Settings and Options**: Go to the `/settings` page to:
    - Precisely adjust the volume of the game's sound effects.
    - Toggle the **Micro-transaction Blocker**, the **Compact Sidebar**, or the **Loading Spinner Centering** with a single click.
+   - Boost performance by toggling **Disable Animations** or **Disable Images**.
    - Choose your favorite **Global UI Theme** and **Accent Gradient** to personalize the game's look (25 combinations available).
    - Check the **Wikimaster Console** for live extension logs.
 
@@ -51,4 +55,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Modern HTML5 / CSS3 (Flexbox, CSS Variables, Native Animations)
 - Vanilla JavaScript (ES6, MutationObserver)
-- Chrome Extension API (`chrome.storage.local`, `content_scripts`)
+- Chrome Extension APIs (`chrome.storage.local`, `content_scripts`, `declarativeNetRequest`, `service_worker`)
