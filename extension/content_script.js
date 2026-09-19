@@ -308,6 +308,7 @@ function observeCards() {
                   rarity: rarityEl ? rarityEl.innerText.trim() : 'Commune',
                   imageUrl: imgEl ? imgEl.src : ''
                 };
+                
                 console.log("[Wikimaster Extension] Nouvelle carte détectée:", cardData);
                 saveCardToHistory(cardData);
 
@@ -563,6 +564,16 @@ function injectLogsPanel() {
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
       </button>
     </div>
+    
+    <div class="flex items-center justify-between gap-4 mt-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Désactiver les images</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Remplace toutes les images (Pack, Cartes, Avatars) par le logo WikiMaster</p>
+      </div>
+      <button id="wikimaster-toggle-images" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
   `;
 
   // Panneau d'options (Interface)
@@ -757,6 +768,36 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateAnimToggle(newState);
     chrome.storage.local.set({ disableAnimations: newState });
+  });
+
+  // Logique pour le toggle Images
+  const imgBtn = document.getElementById('wikimaster-toggle-images');
+  const imgSpan = imgBtn.querySelector('span');
+
+  const updateImgToggle = (isActive) => {
+    imgBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      imgBtn.style.background = 'var(--color-accent)';
+      imgSpan.style.transform = 'translateX(24px)';
+      document.body.classList.add('wikimaster-no-images');
+    } else {
+      imgBtn.style.background = 'var(--color-border)';
+      imgSpan.style.transform = 'translateX(0px)';
+      document.body.classList.remove('wikimaster-no-images');
+    }
+  };
+
+  chrome.storage.local.get({ disableImages: false }, (res) => {
+    updateImgToggle(res.disableImages);
+  });
+
+  imgBtn.addEventListener('click', () => {
+    const currentState = imgBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateImgToggle(newState);
+    chrome.storage.local.set({ disableImages: newState }, () => {
+      window.location.reload();
+    });
   });
 
   // Logique pour le toggle Centrage Chargement
@@ -1069,6 +1110,36 @@ function init() {
         animation: none !important;
         transition: none !important;
       }
+
+      /* Diviser par 2 la taille du logo sur les boosters */
+      body.wikimaster-no-images img[alt="Ouvrir un paquet"] {
+        width: 128px !important;
+        height: 128px !important;
+        margin-inline: auto !important;
+      }
+      
+      /* Cacher l'image de fond principale des cartes pour voir la couleur de rareté */
+      body.wikimaster-no-images .glow-c > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-pc > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-r > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-sr > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-ur > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-l > img:not([alt="Ouvrir un paquet"]),
+      body.wikimaster-no-images .glow-m > img:not([alt="Ouvrir un paquet"]) {
+        display: none !important;
+      }
+      
+      /* Couleurs de fond dynamiques des parties internes de la carte selon la rareté */
+      body.wikimaster-no-images .glow-c > div.top-0, body.wikimaster-no-images .glow-c > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-c) 40%, transparent) !important; }
+      body.wikimaster-no-images .glow-pc > div.top-0, body.wikimaster-no-images .glow-pc > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-pc) 40%, transparent) !important; }
+      body.wikimaster-no-images .glow-r > div.top-0, body.wikimaster-no-images .glow-r > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-r) 40%, transparent) !important; }
+      body.wikimaster-no-images .glow-sr > div.top-0, body.wikimaster-no-images .glow-sr > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-sr) 40%, transparent) !important; }
+      body.wikimaster-no-images .glow-ur > div.top-0, body.wikimaster-no-images .glow-ur > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-ur) 40%, transparent) !important; }
+      body.wikimaster-no-images .glow-l > div.top-0, body.wikimaster-no-images .glow-l > div.top-\\[45\\%\\] { background-color: color-mix(in srgb, var(--color-rarity-l) 40%, transparent) !important; }
+
+      body.wikimaster-no-images video {
+        display: none !important;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -1076,7 +1147,7 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
@@ -1092,6 +1163,37 @@ function init() {
     // Désactiver les animations
     if (result.disableAnimations) {
       document.body.classList.add('wikimaster-no-animations');
+    }
+
+    // Désactiver les images
+    if (result.disableImages) {
+      document.body.classList.add('wikimaster-no-images');
+      
+      const logoUrl = chrome.runtime.getURL('assets/wikimaster.webp');
+      const replaceImg = (img) => {
+        // Ignorer l'image de fond principale de la carte (qui est gérée par le display:none en CSS)
+        // et remplacer toutes les autres par le logo.
+        if (img.src !== logoUrl && !img.closest('.glow-c > img, .glow-pc > img, .glow-r > img, .glow-sr > img, .glow-ur > img, .glow-l > img, .glow-m > img')) {
+          img.dataset.origSrc = img.src;
+          img.dataset.origSrcset = img.srcset || '';
+          img.src = logoUrl;
+          img.removeAttribute('srcset');
+        }
+      };
+
+      document.querySelectorAll('img').forEach(replaceImg);
+
+      const imgObserver = new MutationObserver((mutations) => {
+        for (const mut of mutations) {
+          for (const node of mut.addedNodes) {
+            if (node.nodeType === 1) {
+              if (node.tagName === 'IMG') replaceImg(node);
+              else node.querySelectorAll('img').forEach(replaceImg);
+            }
+          }
+        }
+      });
+      imgObserver.observe(document.body, { childList: true, subtree: true });
     }
 
     // Appliquer les thèmes
