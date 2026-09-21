@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.3] - 2026-09-19
+## [1.1.4] - 2026-09-22
+
+### Added
+
+- Add better notificaion menu: iOS style menu with animation and a long menu
+
+- Add push notification: Push notification when a new notification is received on the top of the screen
+
+- Block the volume setting when audio setting is disable
+
+### Fixed
+
+- Remove separating bars in settings boxes 
+
+  ## [1.1.3] - 2026-09-19
 
 ### Added
 
