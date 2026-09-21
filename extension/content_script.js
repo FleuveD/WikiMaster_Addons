@@ -308,7 +308,7 @@ function observeCards() {
                   rarity: rarityEl ? rarityEl.innerText.trim() : 'Commune',
                   imageUrl: imgEl ? imgEl.src : ''
                 };
-                
+
                 console.log("[Wikimaster Extension] Nouvelle carte détectée:", cardData);
                 saveCardToHistory(cardData);
 
@@ -576,6 +576,7 @@ function injectLogsPanel() {
     </div>
   `;
 
+
   // Panneau d'options (Interface)
   const interfacePanel = document.createElement('div');
   interfacePanel.id = 'wikimaster-interface-panel';
@@ -741,6 +742,8 @@ function injectLogsPanel() {
     updateMenuToggle(newState);
     chrome.storage.local.set({ compactMenu: newState });
   });
+
+
 
   // Logique pour le toggle Animations
   const animBtn = document.getElementById('wikimaster-toggle-animations');
@@ -1062,6 +1065,60 @@ function injectVolumeSlider() {
   });
 }
 
+function injectNotifSettingsPanel() {
+  if (document.getElementById('wikimaster-toggle-notif-ios')) return;
+
+  let existingNotifPanel = Array.from(document.querySelectorAll('.card-frame')).find(el => {
+    const h3 = el.querySelector('h3');
+    return h3 && h3.textContent.includes('Notifications');
+  });
+
+  if (existingNotifPanel) {
+    const ourNotifOption = document.createElement('div');
+    ourNotifOption.className = 'flex items-center justify-between gap-4 mt-4 border-t border-[var(--color-border)] pt-4';
+    ourNotifOption.innerHTML = `
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Amélioration des notifications</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Affiche les notifications avec un style pop-up à droite du menu</p>
+      </div>
+      <button id="wikimaster-toggle-notif-ios" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    `;
+
+    existingNotifPanel.appendChild(ourNotifOption);
+
+    const notifIosBtn = document.getElementById('wikimaster-toggle-notif-ios');
+    if (notifIosBtn) {
+      const notifIosSpan = notifIosBtn.querySelector('span');
+
+      const updateNotifIosToggle = (isActive) => {
+        notifIosBtn.setAttribute('aria-checked', isActive.toString());
+        if (isActive) {
+          notifIosBtn.style.background = 'var(--color-accent)';
+          notifIosSpan.style.transform = 'translateX(24px)';
+          document.body.classList.add('wikimaster-ios-notif');
+        } else {
+          notifIosBtn.style.background = 'var(--color-border)';
+          notifIosSpan.style.transform = 'translateX(0px)';
+          document.body.classList.remove('wikimaster-ios-notif');
+        }
+      };
+
+      chrome.storage.local.get({ iosNotif: false }, (res) => {
+        updateNotifIosToggle(res.iosNotif);
+      });
+
+      notifIosBtn.addEventListener('click', () => {
+        const currentState = notifIosBtn.getAttribute('aria-checked') === 'true';
+        const newState = !currentState;
+        updateNotifIosToggle(newState);
+        chrome.storage.local.set({ iosNotif: newState });
+      });
+    }
+  }
+}
+
 // Initialisation
 function init() {
   // Injecter les styles CSS pour l'animation s'ils ne sont pas déjà là
@@ -1140,15 +1197,68 @@ function init() {
       body.wikimaster-no-images video {
         display: none !important;
       }
+
+      /* Style iOS pour les notifications */
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown {
+        transform: none !important;
+        width: 380px !important;
+        border-radius: 24px !important;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+        background: var(--color-surface) !important;
+        max-height: calc(100dvh - 64px) !important;
+      }
+      
+      @keyframes wikimaster-ios-slide-down {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown > div.flex.items-center.justify-between.px-4.py-3.border-b {
+        border-bottom: none !important;
+        padding-top: 20px !important;
+        padding-bottom: 12px !important;
+      }
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown .min-h-0.flex-1.overflow-y-auto {
+        padding: 0 12px 12px 12px !important;
+        gap: 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown .min-h-0.flex-1.overflow-y-auto > button {
+        border-radius: 16px !important;
+        border-bottom: none !important;
+        background: var(--color-surface-light) !important;
+        transition: transform 0.2s, background-color 0.2s !important;
+      }
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown .min-h-0.flex-1.overflow-y-auto > button:hover {
+        transform: scale(0.98) !important;
+        background: color-mix(in srgb, var(--color-surface-light) 80%, var(--color-foreground)) !important;
+      }
+      body.wikimaster-ios-notif div.wikimaster-notif-dropdown .min-h-0.flex-1.overflow-y-auto > button.bg-\\[var\\(--color-accent\\)\\]\\/5 {
+        background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface-light)) !important;
+      }
     `;
     document.head.appendChild(style);
   }
 
+
+
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
+
+    // Activer l'amélioration des notifications iOS
+    if (result.iosNotif) {
+      document.body.classList.add('wikimaster-ios-notif');
+    }
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
     if (result.compactMenu) {
@@ -1168,7 +1278,7 @@ function init() {
     // Désactiver les images
     if (result.disableImages) {
       document.body.classList.add('wikimaster-no-images');
-      
+
       const logoUrl = chrome.runtime.getURL('assets/wikimaster.webp');
       const replaceImg = (img) => {
         // Ignorer l'image de fond principale de la carte (qui est gérée par le display:none en CSS)
@@ -1282,8 +1392,18 @@ function init() {
       if (claimBtn) claimBtn.remove();
     }
 
+    // Détection de la dropdown de notifications pour lui ajouter une classe unique
+    const notifDropdowns = document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]:not(.wikimaster-notif-dropdown)');
+    notifDropdowns.forEach(dropdown => {
+      const span = dropdown.querySelector('span.text-sm.font-semibold');
+      if (span && span.textContent.trim() === 'Notifications') {
+        dropdown.classList.add('wikimaster-notif-dropdown');
+      }
+    });
+
     if (window.location.pathname.includes('/settings')) {
       injectLogsPanel();
+      injectNotifSettingsPanel();
       injectVolumeSlider();
     } else {
       const panel = document.getElementById('wikimaster-logs-container');
