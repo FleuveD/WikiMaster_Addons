@@ -992,7 +992,7 @@ function injectVolumeSlider() {
 
   const sliderContainer = document.createElement('div');
   sliderContainer.id = 'wikimaster-volume-slider-container';
-  sliderContainer.className = 'animate-fade-in-up';
+  sliderContainer.className = 'animate-fade-in-up transition-all duration-300';
 
   sliderContainer.innerHTML = `
     <div class="flex items-center justify-between mb-3">
@@ -1047,6 +1047,33 @@ function injectVolumeSlider() {
   const valueDisplay = document.getElementById('wikimaster-volume-value');
 
   if (!chrome.runtime?.id) return;
+
+  const sonToggle = container.querySelector('button[role="switch"]');
+  if (sonToggle) {
+    const updateSliderState = () => {
+      const isSoundOn = sonToggle.getAttribute('aria-checked') === 'true';
+      if (!isSoundOn) {
+        sliderContainer.style.setProperty('opacity', '0.5', 'important');
+        sliderContainer.style.pointerEvents = 'none';
+        sliderContainer.style.filter = 'grayscale(1)';
+      } else {
+        sliderContainer.style.setProperty('opacity', '1', 'important');
+        sliderContainer.style.pointerEvents = 'auto';
+        sliderContainer.style.filter = 'none';
+      }
+    };
+
+    updateSliderState();
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-checked') {
+          updateSliderState();
+        }
+      });
+    });
+    observer.observe(sonToggle, { attributes: true });
+  }
 
   const updateSliderBg = (val) => {
     slider.style.background = `linear-gradient(to right, var(--color-accent) ${val}%, var(--color-surface-light) ${val}%)`;
