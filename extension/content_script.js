@@ -1078,7 +1078,7 @@ function injectNotifSettingsPanel() {
     ourNotifOption.className = 'flex items-center justify-between gap-4 mt-4 border-t border-[var(--color-border)] pt-4';
     ourNotifOption.innerHTML = `
       <div>
-        <p class="text-sm text-[var(--color-foreground)]">Amélioration des notifications</p>
+        <p class="text-sm text-[var(--color-foreground)]">Amélioration du menu des notifications</p>
         <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Affiche les notifications avec un style pop-up à droite du menu</p>
       </div>
       <button id="wikimaster-toggle-notif-ios" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
@@ -1247,7 +1247,29 @@ function init() {
     document.head.appendChild(style);
   }
 
+  // Optimisation: Au lieu d'utiliser le MutationObserver qui tourne en boucle,
+  // on écoute le clic sur le bouton de notification et on cherche la boîte juste après.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[aria-label="Notifications"]');
+    if (btn) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        const notifDropdowns = document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]:not(.wikimaster-notif-dropdown)');
+        let found = false;
+        notifDropdowns.forEach(dropdown => {
+          const span = dropdown.querySelector('span.text-sm.font-semibold');
+          if (span && span.textContent.trim() === 'Notifications') {
+            dropdown.classList.add('wikimaster-notif-dropdown');
+            found = true;
+          }
+        });
+        if (found) clearInterval(interval);
 
+        attempts++;
+        if (attempts > 10) clearInterval(interval); // Arrêt après ~500ms
+      }, 50);
+    }
+  });
 
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
@@ -1392,14 +1414,6 @@ function init() {
       if (claimBtn) claimBtn.remove();
     }
 
-    // Détection de la dropdown de notifications pour lui ajouter une classe unique
-    const notifDropdowns = document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]:not(.wikimaster-notif-dropdown)');
-    notifDropdowns.forEach(dropdown => {
-      const span = dropdown.querySelector('span.text-sm.font-semibold');
-      if (span && span.textContent.trim() === 'Notifications') {
-        dropdown.classList.add('wikimaster-notif-dropdown');
-      }
-    });
 
     if (window.location.pathname.includes('/settings')) {
       injectLogsPanel();
