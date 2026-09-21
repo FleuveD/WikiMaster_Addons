@@ -1192,6 +1192,7 @@ function injectNotifSettingsPanel() {
 
 let notifObserver = null;
 let lastBadgeCount = 0;
+let isInitialLoad = true;
 
 function setupNotifObserver() {
   const btn = document.querySelector('button[aria-label="Notifications"]');
@@ -1203,11 +1204,15 @@ function setupNotifObserver() {
   if (notifObserver) notifObserver.disconnect();
 
   lastBadgeCount = getBadgeCount(btn);
+  isInitialLoad = true;
+  setTimeout(() => { isInitialLoad = false; }, 3000);
 
   notifObserver = new MutationObserver(() => {
     const newBadgeCount = getBadgeCount(btn);
     if (newBadgeCount > lastBadgeCount) {
-      showPushNotification();
+      if (!isInitialLoad) {
+        showPushNotification();
+      }
     }
     lastBadgeCount = newBadgeCount;
   });
