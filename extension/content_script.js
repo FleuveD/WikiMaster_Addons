@@ -42,6 +42,8 @@ function applyTheme(themeKey) {
   styleEl.innerHTML = `
     :root {
       --color-accent: ${theme.accent} !important;
+      --color-accent-light: color-mix(in srgb, ${theme.accent} 80%, white) !important;
+      --color-accent-dark: color-mix(in srgb, ${theme.accent} 80%, black) !important;
       --theme-gradient: ${theme.gradient} !important;
     }
     
@@ -558,7 +560,7 @@ function injectLogsPanel() {
     <div class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Désactiver les animations</p>
-        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Supprime toutes les animations et transitions pour un rendu immédiat</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Supprime toutes les animations et transitions</p>
       </div>
       <button id="wikimaster-toggle-animations" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
@@ -568,7 +570,7 @@ function injectLogsPanel() {
     <div class="flex items-center justify-between gap-4 mt-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Désactiver les images</p>
-        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Remplace toutes les images (Pack, Cartes, Avatars) par le logo WikiMaster</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Remplace toutes les images du jeu</p>
       </div>
       <button id="wikimaster-toggle-images" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
@@ -587,7 +589,7 @@ function injectLogsPanel() {
     <div class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Amélioration du menu gauche</p>
-        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste l'espacement pour que tout rentre dans l'écran sans défilement</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Ajuste l'espacement du menu gauche et empêche le défilement</p>
       </div>
       <button id="wikimaster-toggle-menu" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
@@ -597,7 +599,7 @@ function injectLogsPanel() {
     <div class="flex items-center justify-between gap-4 mt-4">
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Centrage du chargement</p>
-        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Centre correctement l'animation lors des chargements de page</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Centre l'animation lors des chargements de page</p>
       </div>
       <button id="wikimaster-toggle-loading" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
         <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
@@ -1086,7 +1088,20 @@ function injectNotifSettingsPanel() {
       </button>
     `;
 
+    const pushNotifOption = document.createElement('div');
+    pushNotifOption.className = 'flex items-center justify-between gap-4 mt-4';
+    pushNotifOption.innerHTML = `
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Notification Push</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Affiche des notifications éphémères en haut de l'écran</p>
+      </div>
+      <button id="wikimaster-toggle-notif-push" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    `;
+
     existingNotifPanel.appendChild(ourNotifOption);
+    existingNotifPanel.appendChild(pushNotifOption);
 
     const notifIosBtn = document.getElementById('wikimaster-toggle-notif-ios');
     if (notifIosBtn) {
@@ -1116,7 +1131,234 @@ function injectNotifSettingsPanel() {
         chrome.storage.local.set({ iosNotif: newState });
       });
     }
+
+    const pushNotifBtn = document.getElementById('wikimaster-toggle-notif-push');
+    if (pushNotifBtn) {
+      const pushNotifSpan = pushNotifBtn.querySelector('span');
+
+      const updatePushNotifToggle = (isActive) => {
+        pushNotifBtn.setAttribute('aria-checked', isActive.toString());
+        if (isActive) {
+          pushNotifBtn.style.background = 'var(--color-accent)';
+          pushNotifSpan.style.transform = 'translateX(24px)';
+          setupNotifObserver();
+        } else {
+          pushNotifBtn.style.background = 'var(--color-border)';
+          pushNotifSpan.style.transform = 'translateX(0px)';
+          stopNotifObserver();
+        }
+      };
+
+      chrome.storage.local.get({ iosPushNotif: false }, (res) => {
+        updatePushNotifToggle(res.iosPushNotif);
+      });
+
+      pushNotifBtn.addEventListener('click', () => {
+        const currentState = pushNotifBtn.getAttribute('aria-checked') === 'true';
+        const newState = !currentState;
+        updatePushNotifToggle(newState);
+        chrome.storage.local.set({ iosPushNotif: newState });
+      });
+    }
   }
+}
+
+let notifObserver = null;
+let lastBadgeCount = 0;
+
+function setupNotifObserver() {
+  const btn = document.querySelector('button[aria-label="Notifications"]');
+  if (!btn) {
+    setTimeout(setupNotifObserver, 1000);
+    return;
+  }
+
+  if (notifObserver) notifObserver.disconnect();
+
+  lastBadgeCount = getBadgeCount(btn);
+
+  notifObserver = new MutationObserver(() => {
+    const newBadgeCount = getBadgeCount(btn);
+    if (newBadgeCount > lastBadgeCount) {
+      showPushNotification();
+    }
+    lastBadgeCount = newBadgeCount;
+  });
+
+  notifObserver.observe(btn, { childList: true, subtree: true, characterData: true });
+}
+
+function stopNotifObserver() {
+  if (notifObserver) {
+    notifObserver.disconnect();
+    notifObserver = null;
+  }
+}
+
+function getBadgeCount(btn) {
+  const badge = btn.querySelector('.absolute');
+  if (badge) {
+    const text = badge.innerText.replace(/[^0-9]/g, '');
+    return text.length > 0 ? parseInt(text, 10) : 1;
+  }
+  return 0;
+}
+
+function showPushNotification() {
+  if (document.getElementById('wikimaster-push-toast')) return;
+
+  const btn = document.querySelector('button[aria-label="Notifications"]');
+  if (!btn) return;
+
+  const wasOpen = btn.getAttribute('aria-expanded') === 'true';
+
+  if (wasOpen) {
+    extractContentAndShow();
+  } else {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-temp-hide';
+    style.innerHTML = 'div.card-frame.fixed.z-\\[100\\] { opacity: 0 !important; pointer-events: none !important; }';
+    document.head.appendChild(style);
+
+    btn.click();
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const dropdowns = Array.from(document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]'));
+      const dropdown = dropdowns.find(d => {
+        const h3 = d.querySelector('span.text-sm.font-semibold');
+        return h3 && h3.textContent.trim() === 'Notifications';
+      });
+
+      if (dropdown && dropdown.querySelector('.min-h-0.flex-1.overflow-y-auto > button')) {
+        clearInterval(interval);
+        extractContentAndShow(dropdown);
+        btn.click();
+        setTimeout(() => document.getElementById('wikimaster-temp-hide')?.remove(), 50);
+      }
+
+      attempts++;
+      if (attempts > 20) {
+        clearInterval(interval);
+        if (btn.getAttribute('aria-expanded') === 'true') btn.click();
+        document.getElementById('wikimaster-temp-hide')?.remove();
+        showGenericNotification();
+      }
+    }, 50);
+  }
+}
+
+function extractContentAndShow(dropdown = null) {
+  if (!dropdown) {
+    const dropdowns = Array.from(document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]'));
+    dropdown = dropdowns.find(d => {
+      const h3 = d.querySelector('span.text-sm.font-semibold');
+      return h3 && h3.textContent.trim() === 'Notifications';
+    });
+  }
+
+  if (!dropdown) return showGenericNotification();
+
+  const firstItem = dropdown.querySelector('.min-h-0.flex-1.overflow-y-auto > button');
+  if (!firstItem) return showGenericNotification();
+
+  buildToast(firstItem.innerHTML);
+}
+
+function showGenericNotification() {
+  buildToast(`
+    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-accent)]/20 text-[var(--color-accent)] shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg>
+    </div>
+    <div class="flex flex-col mt-2">
+      <span class="text-sm font-semibold">WikiMaster</span>
+      <span class="text-sm opacity-80">Vous avez une nouvelle notification</span>
+    </div>
+  `);
+}
+
+function buildToast(innerHTML) {
+  if (document.getElementById('wikimaster-push-toast')) return;
+
+  const toast = document.createElement('div');
+  toast.id = 'wikimaster-push-toast';
+  toast.className = 'fixed z-[9999] flex items-start gap-3 p-4 shadow-2xl cursor-pointer hover:bg-[var(--color-surface-light)] transition-colors';
+  toast.style.cssText = `
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-foreground);
+    min-width: 340px;
+    max-width: 400px;
+    animation: wikimaster-toast-slide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  `;
+
+  toast.innerHTML = innerHTML;
+
+  toast.addEventListener('click', () => {
+    const btn = document.querySelector('button[aria-label="Notifications"]');
+    if (btn) {
+      const clickFirstNotificationItem = () => {
+        const dropdowns = Array.from(document.querySelectorAll('div.card-frame.fixed.z-\\[100\\]'));
+        const dropdown = dropdowns.find(d => {
+          const h3 = d.querySelector('span.text-sm.font-semibold');
+          return h3 && h3.textContent.trim() === 'Notifications';
+        });
+        if (dropdown) {
+          const firstItem = dropdown.querySelector('.min-h-0.flex-1.overflow-y-auto > button');
+          if (firstItem) {
+            firstItem.click();
+            return true;
+          }
+        }
+        return false;
+      };
+
+      if (btn.getAttribute('aria-expanded') === 'true') {
+        clickFirstNotificationItem();
+      } else {
+        const style = document.createElement('style');
+        style.id = 'wikimaster-temp-hide-click';
+        style.innerHTML = 'div.card-frame.fixed.z-\\[100\\] { opacity: 0 !important; }';
+        document.head.appendChild(style);
+
+        btn.click();
+
+        let attempts = 0;
+        const interval = setInterval(() => {
+          if (clickFirstNotificationItem()) {
+            clearInterval(interval);
+            setTimeout(() => document.getElementById('wikimaster-temp-hide-click')?.remove(), 50);
+          }
+
+          attempts++;
+          if (attempts > 20) {
+            clearInterval(interval);
+            document.getElementById('wikimaster-temp-hide-click')?.remove();
+            if (btn.getAttribute('aria-expanded') === 'true') btn.click();
+          }
+        }, 50);
+      }
+    }
+    closeToast(toast);
+  });
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    closeToast(toast);
+  }, 5000);
+}
+
+function closeToast(toast) {
+  if (!toast) return;
+  toast.style.animation = 'wikimaster-toast-slide-out 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+  setTimeout(() => toast.remove(), 400);
 }
 
 // Initialisation
@@ -1218,6 +1460,15 @@ function init() {
           transform: translateY(0) scale(1);
         }
       }
+      
+      @keyframes wikimaster-toast-slide {
+        from { opacity: 0; transform: translate(-50%, -40px) scale(0.9); }
+        to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      }
+      @keyframes wikimaster-toast-slide-out {
+        from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        to { opacity: 0; transform: translate(-50%, -40px) scale(0.9); }
+      }
 
       body.wikimaster-ios-notif div.wikimaster-notif-dropdown > div.flex.items-center.justify-between.px-4.py-3.border-b {
         border-bottom: none !important;
@@ -1274,12 +1525,17 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, iosPushNotif: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     // Activer l'amélioration des notifications iOS
     if (result.iosNotif) {
       document.body.classList.add('wikimaster-ios-notif');
+    }
+
+    // Initialiser l'observer pour les push notifs
+    if (result.iosPushNotif) {
+      setupNotifObserver();
     }
 
     // Activer l'amélioration du menu si l'option est activée (par défaut)
