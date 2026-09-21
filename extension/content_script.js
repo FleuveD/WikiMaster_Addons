@@ -527,7 +527,7 @@ function injectLogsPanel() {
         ${baseThemeButtonsHTML}
       </div>
     </div>
-    <div class="mt-4 border-t border-[var(--color-border)] pt-4">
+    <div class="mt-4">
       <div class="flex flex-col gap-2">
         <p class="text-sm text-[var(--color-foreground)]">Couleurs d'accentuation</p>
         <div class="flex items-center gap-3 mt-2" id="wikimaster-theme-list">
@@ -990,7 +990,7 @@ function injectVolumeSlider() {
 
   const sliderContainer = document.createElement('div');
   sliderContainer.id = 'wikimaster-volume-slider-container';
-  sliderContainer.className = 'mt-5 pt-4 border-t border-[var(--color-border)] animate-fade-in-up';
+  sliderContainer.className = 'animate-fade-in-up';
 
   sliderContainer.innerHTML = `
     <div class="flex items-center justify-between mb-3">
@@ -1075,7 +1075,7 @@ function injectNotifSettingsPanel() {
 
   if (existingNotifPanel) {
     const ourNotifOption = document.createElement('div');
-    ourNotifOption.className = 'flex items-center justify-between gap-4 mt-4 border-t border-[var(--color-border)] pt-4';
+    ourNotifOption.className = 'flex items-center justify-between gap-4';
     ourNotifOption.innerHTML = `
       <div>
         <p class="text-sm text-[var(--color-foreground)]">Amélioration du menu des notifications</p>
