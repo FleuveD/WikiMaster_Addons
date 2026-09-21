@@ -10,7 +10,10 @@
   
   <img src="README_IMG2.png" alt="MTX Blocker" width="50%">
   
-- **Volume Control**: Adds an exclusive volume slider in the settings page (`/settings`) to precisely lower or mute the deafening sound effects during pack openings.
+- **Volume Control**: Adds an exclusive volume slider in the settings page (`/settings`) to precisely lower or mute the deafening sound effects during pack openings. Auto-disables when the master sound is turned off.
+- **Smart Notifications System**: Two powerful options in `/settings` to revolutionize how you receive alerts:
+  - **Enhanced Notification Menu**: Replaces the default notification dropdown with a sleek, rounded, and blurred iOS-style interface that stays perfectly positioned near the sidebar.
+  - **Push Notifications**: Dynamically detects when you receive a new alert, invisibly extracts its content in real-time, and displays a beautiful, interactive toast pop-up at the top of your screen. Clicking the pop-up instantly redirects you to the relevant page (auction, trade, etc.)!
 - **Advanced Theme Customization**: Take full control of the game's appearance! Replace the basic dark mode toggle with **5 Global UI Themes** (Dark Black, Dark, White, Cream, Dark Blue) and **5 Accent Colors** (Green, Purple, Blue, Red, Yellow). With 25 unique combinations, the extension dynamically overrides the game's default CSS variables and injects rich, harmonious gradients into buttons to make the interface pop!
 
   <img src="README_IMG3.png" alt="Theme Customization" width="50%">
@@ -43,6 +46,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 3. **Settings and Options**: Go to the `/settings` page to:
    - Precisely adjust the volume of the game's sound effects.
    - Toggle the **Micro-transaction Blocker**, the **Compact Sidebar**, or the **Loading Spinner Centering** with a single click.
+   - Enable **Smart Notifications** to enjoy the iOS-style menu and real-time interactive push pop-ups.
    - Boost performance by toggling **Disable Animations** or **Disable Images**.
    - Choose your favorite **Global UI Theme** and **Accent Gradient** to personalize the game's look (25 combinations available).
    - Check the **Wikimaster Console** for live extension logs.
