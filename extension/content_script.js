@@ -334,54 +334,120 @@ function observeCards() {
 // ---------------------------------------------------------
 
 function injectClaimAllButton() {
-  if (document.getElementById('wikimaster-claim-all-btn')) return;
+  if (document.getElementById('wikimaster-achievements-ui')) return;
 
-  // On cible le conteneur du titre "Succès" tout en haut de la page
   const h1 = Array.from(document.querySelectorAll('h1')).find(el => el.innerText.includes('Succès'));
   if (!h1) return;
   const titleContainer = h1.parentElement;
+  titleContainer.style.position = 'relative';
 
-  const btn = document.createElement('button');
-  btn.id = 'wikimaster-claim-all-btn';
-  btn.innerText = 'Tout réclamer';
-
-  // Style similaire au bouton "Ouvrir tout"
-  btn.style.cssText = `
-    padding: 12px 24px;
-    background: var(--theme-gradient, var(--color-accent));
-    color: #ffffff;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    justify-content: center;
+  const uiContainer = document.createElement('div');
+  uiContainer.id = 'wikimaster-achievements-ui';
+  uiContainer.style.cssText = `
+    display: flex;
     align-items: center;
-    min-height: 48px;
+    gap: 8px;
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
   `;
 
-  btn.onmouseover = () => {
-    if (!btn.disabled) {
-      btn.style.opacity = '0.85';
+  if (!document.getElementById('wikimaster-filter-styles')) {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-filter-styles';
+    style.innerHTML = `
+      body.wikimaster-filter-completed .card-frame.opacity-40 { display: none !important; }
+      body.wikimaster-filter-missing .card-frame.opacity-100 { display: none !important; }
+      
+      .wikimaster-filter-btn {
+        padding: 8px 12px;
+        background: var(--color-surface);
+        color: var(--color-foreground);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .wikimaster-filter-btn:hover {
+        background: var(--color-surface-light);
+      }
+      .wikimaster-filter-btn.active {
+        background: var(--theme-gradient, var(--color-accent));
+        color: white;
+        border-color: transparent;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const filterAll = document.createElement('button');
+  filterAll.className = 'wikimaster-filter-btn active';
+  filterAll.innerText = 'Tous';
+
+  const filterCompleted = document.createElement('button');
+  filterCompleted.className = 'wikimaster-filter-btn';
+  filterCompleted.innerText = 'Accomplis';
+
+  const filterMissing = document.createElement('button');
+  filterMissing.className = 'wikimaster-filter-btn';
+  filterMissing.innerText = 'Manquants';
+
+  const updateFilters = (mode) => {
+    document.body.classList.remove('wikimaster-filter-completed', 'wikimaster-filter-missing');
+    filterAll.classList.remove('active');
+    filterCompleted.classList.remove('active');
+    filterMissing.classList.remove('active');
+
+    if (mode === 'completed') {
+      document.body.classList.add('wikimaster-filter-completed');
+      filterCompleted.classList.add('active');
+    } else if (mode === 'missing') {
+      document.body.classList.add('wikimaster-filter-missing');
+      filterMissing.classList.add('active');
+    } else {
+      filterAll.classList.add('active');
     }
   };
 
-  btn.onmouseout = () => {
-    if (!btn.disabled) {
-      btn.style.opacity = '1';
-    }
-  };
+  filterAll.onclick = () => updateFilters('all');
+  filterCompleted.onclick = () => updateFilters('completed');
+  filterMissing.onclick = () => updateFilters('missing');
 
-  btn.addEventListener('click', claimAllAchievements);
+  const separator = document.createElement('div');
+  separator.style.cssText = 'width: 1px; height: 24px; background: var(--color-border); margin: 0 4px;';
 
-  // On met le conteneur du titre en relative pour que le bouton en absolute se cale à droite
-  titleContainer.style.position = 'relative';
-  titleContainer.appendChild(btn);
+  const claimBtn = document.createElement('button');
+  claimBtn.id = 'wikimaster-claim-all-btn';
+  claimBtn.innerText = 'Tout réclamer';
+  claimBtn.style.cssText = `
+    padding: 8px 16px;
+    background: var(--theme-gradient, var(--color-accent));
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 36px;
+  `;
+
+  claimBtn.onmouseover = () => { if (!claimBtn.disabled) claimBtn.style.opacity = '0.85'; };
+  claimBtn.onmouseout = () => { if (!claimBtn.disabled) claimBtn.style.opacity = '1'; };
+  claimBtn.addEventListener('click', claimAllAchievements);
+
+  uiContainer.appendChild(filterAll);
+  uiContainer.appendChild(filterCompleted);
+  uiContainer.appendChild(filterMissing);
+  uiContainer.appendChild(separator);
+  uiContainer.appendChild(claimBtn);
+
+  titleContainer.appendChild(uiContainer);
 }
 
 async function claimAllAchievements() {
@@ -629,9 +695,38 @@ function injectLogsPanel() {
     <div id="wikimaster-logs-content" class="text-xs font-mono space-y-2 flex-1 overflow-y-auto pr-2" style="color: var(--color-foreground); opacity: 0.8;"></div>
   `;
 
+  // Panneau d'options (Succès)
+  const succesPanel = document.createElement('div');
+  succesPanel.id = 'wikimaster-succes-panel';
+  succesPanel.className = 'card-frame p-5 animate-fade-in-up';
+  succesPanel.innerHTML = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Succès</h3>
+    
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Activer bouton réclamer tout</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Bouton qui permet de récupérer tout les succès</p>
+      </div>
+      <button id="wikimaster-toggle-succes-claim" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+    
+    <div class="flex items-center justify-between gap-4 mt-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Activer filtres succès</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Affiche les boutons pour filtrer les succès</p>
+      </div>
+      <button id="wikimaster-toggle-succes-filters" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+  `;
+
   panelContainer.appendChild(optionsPanel);
   panelContainer.appendChild(apparencePanel);
   panelContainer.appendChild(interfacePanel);
+  panelContainer.appendChild(succesPanel);
   panelContainer.appendChild(perfPanel);
   panelContainer.appendChild(panel);
   main.appendChild(panelContainer);
@@ -831,6 +926,62 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateLoadingToggle(newState);
     chrome.storage.local.set({ centerLoading: newState });
+  });
+
+  // Logique pour le toggle Succès Claim
+  const succesClaimBtn = document.getElementById('wikimaster-toggle-succes-claim');
+  const succesClaimSpan = succesClaimBtn.querySelector('span');
+
+  const updateSuccesClaimToggle = (isActive) => {
+    succesClaimBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      succesClaimBtn.style.background = 'var(--color-accent)';
+      succesClaimSpan.style.transform = 'translateX(24px)';
+      document.body.classList.remove('wikimaster-no-succes-claim');
+    } else {
+      succesClaimBtn.style.background = 'var(--color-border)';
+      succesClaimSpan.style.transform = 'translateX(0px)';
+      document.body.classList.add('wikimaster-no-succes-claim');
+    }
+  };
+
+  chrome.storage.local.get({ enableSuccesClaim: true }, (res) => {
+    updateSuccesClaimToggle(res.enableSuccesClaim);
+  });
+
+  succesClaimBtn.addEventListener('click', () => {
+    const currentState = succesClaimBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateSuccesClaimToggle(newState);
+    chrome.storage.local.set({ enableSuccesClaim: newState });
+  });
+
+  // Logique pour le toggle Succès Filters
+  const succesFiltersBtn = document.getElementById('wikimaster-toggle-succes-filters');
+  const succesFiltersSpan = succesFiltersBtn.querySelector('span');
+
+  const updateSuccesFiltersToggle = (isActive) => {
+    succesFiltersBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      succesFiltersBtn.style.background = 'var(--color-accent)';
+      succesFiltersSpan.style.transform = 'translateX(24px)';
+      document.body.classList.remove('wikimaster-no-succes-filters');
+    } else {
+      succesFiltersBtn.style.background = 'var(--color-border)';
+      succesFiltersSpan.style.transform = 'translateX(0px)';
+      document.body.classList.add('wikimaster-no-succes-filters');
+    }
+  };
+
+  chrome.storage.local.get({ enableSuccesFilters: true }, (res) => {
+    updateSuccesFiltersToggle(res.enableSuccesFilters);
+  });
+
+  succesFiltersBtn.addEventListener('click', () => {
+    const currentState = succesFiltersBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updateSuccesFiltersToggle(newState);
+    chrome.storage.local.set({ enableSuccesFilters: newState });
   });
 
   // Logique pour les Thèmes
@@ -1557,8 +1708,11 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, iosPushNotif: false, theme: 'emerald', baseTheme: 'dark' }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, iosPushNotif: false, theme: 'emerald', baseTheme: 'dark', enableSuccesClaim: true, enableSuccesFilters: true }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
+
+    if (!result.enableSuccesClaim) document.body.classList.add('wikimaster-no-succes-claim');
+    if (!result.enableSuccesFilters) document.body.classList.add('wikimaster-no-succes-filters');
 
     // Activer l'amélioration des notifications iOS
     if (result.iosNotif) {
