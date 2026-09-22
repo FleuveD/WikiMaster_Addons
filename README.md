@@ -4,8 +4,10 @@
 
 ## Features
 
-- **Auto-Opener ("Ouvrir Tout")**: Adds a smart button on the pack opening page (`/pulls`). A single click automatically opens all your packs in succession, saving you from clicking manually dozens of times.
-- **Auto-Claim Achievements ("Tout réclamer")**: Adds a button on the achievements page (`/achievements`) that lets you claim all your unlocked achievements in a single action.
+- **Auto-Opener ("Ouvrir Tout")**: Adds a smart button on the pack opening page (`/pulls`). A single click automatically opens all your packs in succession, saving you from clicking manually dozens of times. Can be toggled in the settings.
+- **Advanced Achievements UI**: Upgrades the achievements page (`/achievements`) with two major features:
+  - **Auto-Claim ("Tout réclamer")**: A button to claim all your unlocked achievements in a single action.
+  - **Quick Filters**: Instantly filter your achievements to see all of them, only the "Accomplished" ones, or only the "Missing" ones. Both the button and filters can be toggled in the settings.
 - **Micro-transaction Blocker (MTX Blocker)**: Automatically removes intrusive "WikiMasters PRO" offers, "WikiBidous" shops, and real-money purchase buttons from the game's interface. The algorithm scans and cleans the page in real time. Can be toggled in the settings.
   
   <img src="README_IMG2.png" alt="MTX Blocker" width="50%">
@@ -47,6 +49,7 @@ To install this extension on Google Chrome (or any Chromium-based browser):
    - Precisely adjust the volume of the game's sound effects.
    - Toggle the **Micro-transaction Blocker**, the **Compact Sidebar**, or the **Loading Spinner Centering** with a single click.
    - Enable **Smart Notifications** to enjoy the iOS-style menu and real-time interactive push pop-ups.
+   - Toggle specific injection features like the **Pack Auto-Opener**, the **Achievements Auto-Claim Button**, and the **Achievements Filters**.
    - Boost performance by toggling **Disable Animations** or **Disable Images**.
    - Choose your favorite **Global UI Theme** and **Accent Gradient** to personalize the game's look (25 combinations available).
    - Check the **Wikimaster Console** for live extension logs.
@@ -54,9 +57,3 @@ To install this extension on Google Chrome (or any Chromium-based browser):
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Tech Stack
-
-- Modern HTML5 / CSS3 (Flexbox, CSS Variables, Native Animations)
-- Vanilla JavaScript (ES6, MutationObserver)
-- Chrome Extension APIs (`chrome.storage.local`, `content_scripts`, `declarativeNetRequest`, `service_worker`)
