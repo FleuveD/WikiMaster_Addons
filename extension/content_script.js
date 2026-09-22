@@ -120,6 +120,13 @@ if (chrome.runtime?.id) {
 function injectOpenAllButton() {
   if (document.getElementById('wikimaster-open-all-btn')) return;
 
+  if (!document.getElementById('wikimaster-pack-open-style')) {
+    const style = document.createElement('style');
+    style.id = 'wikimaster-pack-open-style';
+    style.innerHTML = `body.wikimaster-no-pack-open #wikimaster-open-all-btn { display: none !important; }`;
+    document.head.appendChild(style);
+  }
+
   const btn = document.createElement('button');
   btn.id = 'wikimaster-open-all-btn';
   btn.innerText = 'Ouvrir Tout';
@@ -379,6 +386,11 @@ function injectClaimAllButton() {
         color: white;
         border-color: transparent;
       }
+      
+      body.wikimaster-no-succes-filters .wikimaster-filter-btn { display: none !important; }
+      body.wikimaster-no-succes-filters #wikimaster-achievements-ui > div { display: none !important; }
+      body.wikimaster-no-succes-claim #wikimaster-claim-all-btn { display: none !important; }
+      body.wikimaster-no-succes-filters.wikimaster-no-succes-claim #wikimaster-achievements-ui { display: none !important; }
     `;
     document.head.appendChild(style);
   }
@@ -723,7 +735,26 @@ function injectLogsPanel() {
     </div>
   `;
 
+  // Panneau d'options (Paquets)
+  const packPanel = document.createElement('div');
+  packPanel.id = 'wikimaster-pack-panel';
+  packPanel.className = 'card-frame p-5 animate-fade-in-up mt-4';
+  packPanel.innerHTML = `
+    <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Paquets</h3>
+    
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm text-[var(--color-foreground)]">Activer bouton ouvrir tout</p>
+        <p class="text-xs text-[var(--color-foreground)]/40 mt-0.5">Affiche le bouton "Ouvrir tout" sur la page d'ouverture de paquet</p>
+      </div>
+      <button id="wikimaster-toggle-pack-open" role="switch" aria-checked="false" class="relative shrink-0 w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer focus:outline-none" style="background: var(--color-border);">
+        <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300" style="transform: translateX(0px);"></span>
+      </button>
+    </div>
+  `;
+
   panelContainer.appendChild(optionsPanel);
+  panelContainer.appendChild(packPanel);
   panelContainer.appendChild(apparencePanel);
   panelContainer.appendChild(interfacePanel);
   panelContainer.appendChild(succesPanel);
@@ -982,6 +1013,34 @@ function injectLogsPanel() {
     const newState = !currentState;
     updateSuccesFiltersToggle(newState);
     chrome.storage.local.set({ enableSuccesFilters: newState });
+  });
+
+  // Logique pour le toggle Paquets Open
+  const packOpenBtn = document.getElementById('wikimaster-toggle-pack-open');
+  const packOpenSpan = packOpenBtn.querySelector('span');
+
+  const updatePackOpenToggle = (isActive) => {
+    packOpenBtn.setAttribute('aria-checked', isActive.toString());
+    if (isActive) {
+      packOpenBtn.style.background = 'var(--color-accent)';
+      packOpenSpan.style.transform = 'translateX(24px)';
+      document.body.classList.remove('wikimaster-no-pack-open');
+    } else {
+      packOpenBtn.style.background = 'var(--color-border)';
+      packOpenSpan.style.transform = 'translateX(0px)';
+      document.body.classList.add('wikimaster-no-pack-open');
+    }
+  };
+
+  chrome.storage.local.get({ enablePackOpen: true }, (res) => {
+    updatePackOpenToggle(res.enablePackOpen);
+  });
+
+  packOpenBtn.addEventListener('click', () => {
+    const currentState = packOpenBtn.getAttribute('aria-checked') === 'true';
+    const newState = !currentState;
+    updatePackOpenToggle(newState);
+    chrome.storage.local.set({ enablePackOpen: newState });
   });
 
   // Logique pour les Thèmes
@@ -1708,11 +1767,12 @@ function init() {
   // Le hook de volume (volume_hook.js) est désormais injecté automatiquement 
   // via le manifest.json dans le "MAIN world" pour respecter la CSP du site.
   // On envoie simplement la valeur sauvegardée initiale au hook :
-  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, iosPushNotif: false, theme: 'emerald', baseTheme: 'dark', enableSuccesClaim: true, enableSuccesFilters: true }, (result) => {
+  chrome.storage.local.get({ volume: 100, compactMenu: true, centerLoading: true, disableAnimations: false, disableImages: false, iosNotif: false, iosPushNotif: false, theme: 'emerald', baseTheme: 'dark', enableSuccesClaim: true, enableSuccesFilters: true, enablePackOpen: true }, (result) => {
     window.dispatchEvent(new CustomEvent('wikimaster-volume-change', { detail: { volume: result.volume / 100 } }));
 
     if (!result.enableSuccesClaim) document.body.classList.add('wikimaster-no-succes-claim');
     if (!result.enableSuccesFilters) document.body.classList.add('wikimaster-no-succes-filters');
+    if (!result.enablePackOpen) document.body.classList.add('wikimaster-no-pack-open');
 
     // Activer l'amélioration des notifications iOS
     if (result.iosNotif) {
