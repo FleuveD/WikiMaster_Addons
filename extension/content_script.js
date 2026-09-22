@@ -738,7 +738,7 @@ function injectLogsPanel() {
   // Panneau d'options (Paquets)
   const packPanel = document.createElement('div');
   packPanel.id = 'wikimaster-pack-panel';
-  packPanel.className = 'card-frame p-5 animate-fade-in-up mt-4';
+  packPanel.className = 'card-frame p-5 animate-fade-in-up';
   packPanel.innerHTML = `
     <h3 class="text-sm font-semibold text-[var(--color-foreground)]/60 mb-4" style="font-family: var(--font-heading);">Paquets</h3>
     
